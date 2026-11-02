@@ -1,0 +1,27 @@
+// Błędna konfiguracja testowa:
+// W kroku 2 zdefiniowano jednocześnie zielone światło dla relacji kolizyjnych NS oraz WE.
+// Analizator semantyczny powinien przerwać kompilację z kodem błędu CollisionConflictException.
+
+skrzyzowanie "Niebezpieczne_Skrzyzowanie" {
+    kierunki {
+        NS: pojazdy;
+        WE: pojazdy;
+    }
+
+    kolizje {
+        NS <-> WE;
+    }
+
+    cykl {
+        krok(czas: 15s) {
+            NS: ZIELONE;
+            WE: CZERWONE;
+        }
+
+        // Blad semantyczny: jednoczesne zielone dla kierunkow kolizyjnych
+        krok(czas: 10s) {
+            NS: ZIELONE;
+            WE: ZIELONE;
+        }
+    }
+}

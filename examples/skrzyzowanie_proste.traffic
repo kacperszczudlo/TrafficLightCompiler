@@ -1,0 +1,67 @@
+// Poprawna konfiguracja klasycznego skrzyzowania 4-wlotowego
+// z wydzielonym przejsciem dla pieszych.
+
+skrzyzowanie "Centrum_Pilsudskiego" {
+    kierunki {
+        Polnoc_Poludnie: pojazdy;
+        Wschod_Zachod: pojazdy;
+        Piesi_Polnoc: piesi;
+        Piesi_Poludnie: piesi;
+    }
+
+    kolizje {
+        Polnoc_Poludnie <-> Wschod_Zachod;
+        Wschod_Zachod <-> Piesi_Polnoc;
+        Wschod_Zachod <-> Piesi_Poludnie;
+    }
+
+    cykl {
+        // Faza 1: Ruch glowny NS otwarty
+        krok(czas: 30s) {
+            Polnoc_Poludnie: ZIELONE;
+            Wschod_Zachod: CZERWONE;
+            Piesi_Polnoc: CZERWONE;
+            Piesi_Poludnie: CZERWONE;
+        }
+
+        // Faza 2: Ostrzezenie dla kierunku NS
+        krok(czas: 3s) {
+            Polnoc_Poludnie: ZOLTE;
+            Wschod_Zachod: CZERWONE;
+            Piesi_Polnoc: CZERWONE;
+            Piesi_Poludnie: CZERWONE;
+        }
+
+        // Faza 3: Zmiana przygotowawcza (czerwone z zoltym dla WE)
+        krok(czas: 2s) {
+            Polnoc_Poludnie: CZERWONE;
+            Wschod_Zachod: CZERWONE_ZOLTE;
+            Piesi_Polnoc: CZERWONE;
+            Piesi_Poludnie: CZERWONE;
+        }
+
+        // Faza 4: Ruch poprzeczny WE otwarty, zielone takze dla pieszych
+        krok(czas: 20s) {
+            Polnoc_Poludnie: CZERWONE;
+            Wschod_Zachod: ZIELONE;
+            Piesi_Polnoc: ZIELONE;
+            Piesi_Poludnie: ZIELONE;
+        }
+
+        // Faza 5: Zakonczenie ruchu WE i pieszego
+        krok(czas: 3s) {
+            Polnoc_Poludnie: CZERWONE;
+            Wschod_Zachod: ZOLTE;
+            Piesi_Polnoc: CZERWONE;
+            Piesi_Poludnie: CZERWONE;
+        }
+
+        // Faza 6: Przygotowanie kierunku NS do ponownego otwarcia
+        krok(czas: 2s) {
+            Polnoc_Poludnie: CZERWONE_ZOLTE;
+            Wschod_Zachod: CZERWONE;
+            Piesi_Polnoc: CZERWONE;
+            Piesi_Poludnie: CZERWONE;
+        }
+    }
+}
