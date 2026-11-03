@@ -1,4 +1,6 @@
-# Byte-compiled / optimized / DLL files
+# ANTLR tools
+tools/*.jar
+
 __pycache__/
 *.py[cod]
 *$py.class

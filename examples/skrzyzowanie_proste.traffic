@@ -11,8 +11,8 @@ skrzyzowanie "Centrum_Pilsudskiego" {
 
     kolizje {
         Polnoc_Poludnie <-> Wschod_Zachod;
-        Wschod_Zachod <-> Piesi_Polnoc;
-        Wschod_Zachod <-> Piesi_Poludnie;
+        Polnoc_Poludnie <-> Piesi_Polnoc;
+        Polnoc_Poludnie <-> Piesi_Poludnie;
     }
 
     cykl {
