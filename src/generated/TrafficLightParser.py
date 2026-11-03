@@ -10,33 +10,33 @@ else:
 
 def serializedATN():
     return [
-        4,1,27,100,2,0,7,0,2,1,7,1,2,2,7,2,2,3,7,3,2,4,7,4,2,5,7,5,2,6,7,
+        4,1,38,100,2,0,7,0,2,1,7,1,2,2,7,2,2,3,7,3,2,4,7,4,2,5,7,5,2,6,7,
         6,2,7,7,7,2,8,7,8,2,9,7,9,2,10,7,10,1,0,1,0,1,0,1,1,1,1,1,1,1,1,
         1,1,3,1,31,8,1,1,1,1,1,1,1,1,2,1,2,1,2,5,2,39,8,2,10,2,12,2,42,9,
         2,1,2,1,2,1,3,1,3,1,3,1,3,1,3,1,4,1,4,1,5,1,5,1,5,5,5,56,8,5,10,
         5,12,5,59,9,5,1,5,1,5,1,6,1,6,1,6,1,6,1,6,1,7,1,7,1,7,5,7,71,8,7,
         10,7,12,7,74,9,7,1,7,1,7,1,8,1,8,1,8,1,8,1,8,1,8,1,8,1,8,5,8,86,
         8,8,10,8,12,8,89,9,8,1,8,1,8,1,9,1,9,1,9,1,9,1,9,1,10,1,10,1,10,
-        0,0,11,0,2,4,6,8,10,12,14,16,18,20,0,2,1,0,7,8,1,0,16,21,93,0,22,
+        0,0,11,0,2,4,6,8,10,12,14,16,18,20,0,2,1,0,7,12,1,0,20,32,93,0,22,
         1,0,0,0,2,25,1,0,0,0,4,35,1,0,0,0,6,45,1,0,0,0,8,50,1,0,0,0,10,52,
         1,0,0,0,12,62,1,0,0,0,14,67,1,0,0,0,16,77,1,0,0,0,18,92,1,0,0,0,
         20,97,1,0,0,0,22,23,3,2,1,0,23,24,5,0,0,1,24,1,1,0,0,0,25,26,5,1,
-        0,0,26,27,5,23,0,0,27,28,5,2,0,0,28,30,3,4,2,0,29,31,3,10,5,0,30,
+        0,0,26,27,5,34,0,0,27,28,5,2,0,0,28,30,3,4,2,0,29,31,3,10,5,0,30,
         29,1,0,0,0,30,31,1,0,0,0,31,32,1,0,0,0,32,33,3,14,7,0,33,34,5,3,
         0,0,34,3,1,0,0,0,35,36,5,4,0,0,36,40,5,2,0,0,37,39,3,6,3,0,38,37,
         1,0,0,0,39,42,1,0,0,0,40,38,1,0,0,0,40,41,1,0,0,0,41,43,1,0,0,0,
-        42,40,1,0,0,0,43,44,5,3,0,0,44,5,1,0,0,0,45,46,5,24,0,0,46,47,5,
+        42,40,1,0,0,0,43,44,5,3,0,0,44,5,1,0,0,0,45,46,5,35,0,0,46,47,5,
         5,0,0,47,48,3,8,4,0,48,49,5,6,0,0,49,7,1,0,0,0,50,51,7,0,0,0,51,
-        9,1,0,0,0,52,53,5,9,0,0,53,57,5,2,0,0,54,56,3,12,6,0,55,54,1,0,0,
-        0,56,59,1,0,0,0,57,55,1,0,0,0,57,58,1,0,0,0,58,60,1,0,0,0,59,57,
-        1,0,0,0,60,61,5,3,0,0,61,11,1,0,0,0,62,63,5,24,0,0,63,64,5,10,0,
-        0,64,65,5,24,0,0,65,66,5,6,0,0,66,13,1,0,0,0,67,68,5,11,0,0,68,72,
+        9,1,0,0,0,52,53,5,13,0,0,53,57,5,2,0,0,54,56,3,12,6,0,55,54,1,0,
+        0,0,56,59,1,0,0,0,57,55,1,0,0,0,57,58,1,0,0,0,58,60,1,0,0,0,59,57,
+        1,0,0,0,60,61,5,3,0,0,61,11,1,0,0,0,62,63,5,35,0,0,63,64,5,14,0,
+        0,64,65,5,35,0,0,65,66,5,6,0,0,66,13,1,0,0,0,67,68,5,15,0,0,68,72,
         5,2,0,0,69,71,3,16,8,0,70,69,1,0,0,0,71,74,1,0,0,0,72,70,1,0,0,0,
         72,73,1,0,0,0,73,75,1,0,0,0,74,72,1,0,0,0,75,76,5,3,0,0,76,15,1,
-        0,0,0,77,78,5,12,0,0,78,79,5,13,0,0,79,80,5,14,0,0,80,81,5,5,0,0,
-        81,82,5,22,0,0,82,83,5,15,0,0,83,87,5,2,0,0,84,86,3,18,9,0,85,84,
+        0,0,0,77,78,5,16,0,0,78,79,5,17,0,0,79,80,5,18,0,0,80,81,5,5,0,0,
+        81,82,5,33,0,0,82,83,5,19,0,0,83,87,5,2,0,0,84,86,3,18,9,0,85,84,
         1,0,0,0,86,89,1,0,0,0,87,85,1,0,0,0,87,88,1,0,0,0,88,90,1,0,0,0,
-        89,87,1,0,0,0,90,91,5,3,0,0,91,17,1,0,0,0,92,93,5,24,0,0,93,94,5,
+        89,87,1,0,0,0,90,91,5,3,0,0,91,17,1,0,0,0,92,93,5,35,0,0,93,94,5,
         5,0,0,94,95,3,20,10,0,95,96,5,6,0,0,96,19,1,0,0,0,97,98,7,1,0,0,
         98,21,1,0,0,0,5,30,40,57,72,87
     ]
@@ -52,18 +52,24 @@ class TrafficLightParser ( Parser ):
     sharedContextCache = PredictionContextCache()
 
     literalNames = [ "<INVALID>", "'skrzyzowanie'", "'{'", "'}'", "'kierunki'", 
-                     "':'", "';'", "'pojazdy'", "'piesi'", "'kolizje'", 
-                     "'<->'", "'cykl'", "'krok'", "'('", "'czas'", "')'", 
-                     "'CZERWONE'", "'CZERWONE_ZOLTE'", "'ZIELONE'", "'ZOLTE'", 
-                     "'ZOLTE_MIGAJACE'", "'WYLACZONE'" ]
+                     "':'", "';'", "'pojazdy'", "'samochody'", "'piesi'", 
+                     "'tramwaje'", "'kolej'", "'rowery'", "'kolizje'", "'<->'", 
+                     "'cykl'", "'krok'", "'('", "'czas'", "')'", "'CZERWONE'", 
+                     "'CZERWONE_ZOLTE'", "'ZIELONE'", "'ZOLTE'", "'ZOLTE_MIGAJACE'", 
+                     "'WYLACZONE'", "'ZIELONE_MIGAJACE'", "'TRAM_STOJ'", 
+                     "'TRAM_JAZDA'", "'TRAM_UWAGA'", "'PRZEJAZD_OTWARTY'", 
+                     "'PRZEJAZD_OSTRZEZENIE'", "'PRZEJAZD_ZAMKNIETY'" ]
 
     symbolicNames = [ "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>", 
                       "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>", 
                       "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>", 
                       "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>", 
                       "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>", 
-                      "<INVALID>", "<INVALID>", "TIME_LITERAL", "STRING_LITERAL", 
-                      "ID", "COMMENT_LINE", "COMMENT_BLOCK", "WS" ]
+                      "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>", 
+                      "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>", 
+                      "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>", 
+                      "<INVALID>", "TIME_LITERAL", "STRING_LITERAL", "ID", 
+                      "COMMENT_LINE", "COMMENT_BLOCK", "WS" ]
 
     RULE_program = 0
     RULE_intersection = 1
@@ -103,12 +109,23 @@ class TrafficLightParser ( Parser ):
     T__18=19
     T__19=20
     T__20=21
-    TIME_LITERAL=22
-    STRING_LITERAL=23
-    ID=24
-    COMMENT_LINE=25
-    COMMENT_BLOCK=26
-    WS=27
+    T__21=22
+    T__22=23
+    T__23=24
+    T__24=25
+    T__25=26
+    T__26=27
+    T__27=28
+    T__28=29
+    T__29=30
+    T__30=31
+    T__31=32
+    TIME_LITERAL=33
+    STRING_LITERAL=34
+    ID=35
+    COMMENT_LINE=36
+    COMMENT_BLOCK=37
+    WS=38
 
     def __init__(self, input:TokenStream, output:TextIO = sys.stdout):
         super().__init__(input, output)
@@ -232,7 +249,7 @@ class TrafficLightParser ( Parser ):
             self.state = 30
             self._errHandler.sync(self)
             _la = self._input.LA(1)
-            if _la==9:
+            if _la==13:
                 self.state = 29
                 self.collisionsSection()
 
@@ -298,7 +315,7 @@ class TrafficLightParser ( Parser ):
             self.state = 40
             self._errHandler.sync(self)
             _la = self._input.LA(1)
-            while _la==24:
+            while _la==35:
                 self.state = 37
                 self.directionDef()
                 self.state = 42
@@ -410,7 +427,7 @@ class TrafficLightParser ( Parser ):
             self.enterOuterAlt(localctx, 1)
             self.state = 50
             _la = self._input.LA(1)
-            if not(_la==7 or _la==8):
+            if not((((_la) & ~0x3f) == 0 and ((1 << _la) & 8064) != 0)):
                 self._errHandler.recoverInline(self)
             else:
                 self._errHandler.reportMatch(self)
@@ -466,13 +483,13 @@ class TrafficLightParser ( Parser ):
         try:
             self.enterOuterAlt(localctx, 1)
             self.state = 52
-            self.match(TrafficLightParser.T__8)
+            self.match(TrafficLightParser.T__12)
             self.state = 53
             self.match(TrafficLightParser.T__1)
             self.state = 57
             self._errHandler.sync(self)
             _la = self._input.LA(1)
-            while _la==24:
+            while _la==35:
                 self.state = 54
                 self.collisionDef()
                 self.state = 59
@@ -532,7 +549,7 @@ class TrafficLightParser ( Parser ):
             self.state = 62
             self.match(TrafficLightParser.ID)
             self.state = 63
-            self.match(TrafficLightParser.T__9)
+            self.match(TrafficLightParser.T__13)
             self.state = 64
             self.match(TrafficLightParser.ID)
             self.state = 65
@@ -588,13 +605,13 @@ class TrafficLightParser ( Parser ):
         try:
             self.enterOuterAlt(localctx, 1)
             self.state = 67
-            self.match(TrafficLightParser.T__10)
+            self.match(TrafficLightParser.T__14)
             self.state = 68
             self.match(TrafficLightParser.T__1)
             self.state = 72
             self._errHandler.sync(self)
             _la = self._input.LA(1)
-            while _la==12:
+            while _la==16:
                 self.state = 69
                 self.stepDef()
                 self.state = 74
@@ -657,23 +674,23 @@ class TrafficLightParser ( Parser ):
         try:
             self.enterOuterAlt(localctx, 1)
             self.state = 77
-            self.match(TrafficLightParser.T__11)
+            self.match(TrafficLightParser.T__15)
             self.state = 78
-            self.match(TrafficLightParser.T__12)
+            self.match(TrafficLightParser.T__16)
             self.state = 79
-            self.match(TrafficLightParser.T__13)
+            self.match(TrafficLightParser.T__17)
             self.state = 80
             self.match(TrafficLightParser.T__4)
             self.state = 81
             self.match(TrafficLightParser.TIME_LITERAL)
             self.state = 82
-            self.match(TrafficLightParser.T__14)
+            self.match(TrafficLightParser.T__18)
             self.state = 83
             self.match(TrafficLightParser.T__1)
             self.state = 87
             self._errHandler.sync(self)
             _la = self._input.LA(1)
-            while _la==24:
+            while _la==35:
                 self.state = 84
                 self.stateAssignment()
                 self.state = 89
@@ -785,7 +802,7 @@ class TrafficLightParser ( Parser ):
             self.enterOuterAlt(localctx, 1)
             self.state = 97
             _la = self._input.LA(1)
-            if not((((_la) & ~0x3f) == 0 and ((1 << _la) & 4128768) != 0)):
+            if not((((_la) & ~0x3f) == 0 and ((1 << _la) & 8588886016) != 0)):
                 self._errHandler.recoverInline(self)
             else:
                 self._errHandler.reportMatch(self)

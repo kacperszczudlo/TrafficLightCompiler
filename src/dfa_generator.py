@@ -8,12 +8,23 @@ STATE_MAP = {
     "ZIELONE": "GREEN",
     "ZOLTE": "YELLOW",
     "ZOLTE_MIGAJACE": "YELLOW_FLASHING",
-    "WYLACZONE": "OFF"
+    "ZIELONE_MIGAJACE": "GREEN_FLASHING",
+    "WYLACZONE": "OFF",
+    "TRAM_STOJ": "TRAM_STOP",
+    "TRAM_JAZDA": "TRAM_GO",
+    "TRAM_UWAGA": "TRAM_ATTENTION",
+    "PRZEJAZD_OTWARTY": "CROSSING_OPEN",
+    "PRZEJAZD_OSTRZEZENIE": "CROSSING_WARNING",
+    "PRZEJAZD_ZAMKNIETY": "CROSSING_CLOSED"
 }
 
 TYPE_MAP = {
     "pojazdy": "vehicles_3color",
-    "piesi": "pedestrians_2color"
+    "samochody": "vehicles_3color",
+    "piesi": "pedestrians_2color",
+    "tramwaje": "tram_stk",
+    "kolej": "railway_crossing",
+    "rowery": "bicycles_3color"
 }
 
 class DfaGenerator:

@@ -1,0 +1,93 @@
+// Zaawansowany wezel zintegrowany:
+// Ruch samochodowy (NS i WE), przejscie dla pieszych, torowisko tramwajowe oraz przejazd kolejowy.
+
+skrzyzowanie "Wezel_Zintegrowany_Kolej_Tramwaj" {
+    kierunki {
+        Pojazdy_NS: samochody;
+        Pojazdy_WE: samochody;
+        Pieszy_NS: piesi;
+        Tramwaj_T1: tramwaje;
+        Przejazd_PKP: kolej;
+    }
+
+    kolizje {
+        Pojazdy_NS <-> Pojazdy_WE;
+        Pojazdy_WE <-> Pieszy_NS;
+        Pojazdy_WE <-> Tramwaj_T1;
+        Pojazdy_NS <-> Przejazd_PKP;
+    }
+
+    cykl {
+        // Krok 1: Faza A - Otwarty ruch glowny NS i pieszy NS
+        krok(czas: 25s) {
+            Pojazdy_NS: ZIELONE;
+            Pojazdy_WE: CZERWONE;
+            Pieszy_NS: ZIELONE;
+            Tramwaj_T1: TRAM_STOJ;
+            Przejazd_PKP: PRZEJAZD_OTWARTY;
+        }
+
+        // Krok 2: Ostrzezenie dla kierunku NS
+        krok(czas: 3s) {
+            Pojazdy_NS: ZOLTE;
+            Pojazdy_WE: CZERWONE;
+            Pieszy_NS: CZERWONE;
+            Tramwaj_T1: TRAM_STOJ;
+            Przejazd_PKP: PRZEJAZD_OTWARTY;
+        }
+
+        // Krok 3: Faza przygotowawcza dla kierunku WE
+        krok(czas: 2s) {
+            Pojazdy_NS: CZERWONE;
+            Pojazdy_WE: CZERWONE_ZOLTE;
+            Pieszy_NS: CZERWONE;
+            Tramwaj_T1: TRAM_STOJ;
+            Przejazd_PKP: PRZEJAZD_OTWARTY;
+        }
+
+        // Krok 4: Faza B - Ruch poprzeczny WE (piesi i tramwaj maja zakaz)
+        krok(czas: 20s) {
+            Pojazdy_NS: CZERWONE;
+            Pojazdy_WE: ZIELONE;
+            Pieszy_NS: CZERWONE;
+            Tramwaj_T1: TRAM_STOJ;
+            Przejazd_PKP: PRZEJAZD_OTWARTY;
+        }
+
+        // Krok 5: Ostrzezenie dla kierunku WE
+        krok(czas: 3s) {
+            Pojazdy_NS: CZERWONE;
+            Pojazdy_WE: ZOLTE;
+            Pieszy_NS: CZERWONE;
+            Tramwaj_T1: TRAM_STOJ;
+            Przejazd_PKP: PRZEJAZD_OTWARTY;
+        }
+
+        // Krok 6: Faza C - Wydzielona faza tramwajowa (TRAM_JAZDA)
+        krok(czas: 15s) {
+            Pojazdy_NS: CZERWONE;
+            Pojazdy_WE: CZERWONE;
+            Pieszy_NS: CZERWONE;
+            Tramwaj_T1: TRAM_JAZDA;
+            Przejazd_PKP: PRZEJAZD_OTWARTY;
+        }
+
+        // Krok 7: Ostrzezenie dla tramwaju (TRAM_UWAGA)
+        krok(czas: 3s) {
+            Pojazdy_NS: CZERWONE;
+            Pojazdy_WE: CZERWONE;
+            Pieszy_NS: CZERWONE;
+            Tramwaj_T1: TRAM_UWAGA;
+            Przejazd_PKP: PRZEJAZD_OTWARTY;
+        }
+
+        // Krok 8: Faza przygotowawcza dla powrotu do ruchu NS
+        krok(czas: 2s) {
+            Pojazdy_NS: CZERWONE_ZOLTE;
+            Pojazdy_WE: CZERWONE;
+            Pieszy_NS: CZERWONE;
+            Tramwaj_T1: TRAM_STOJ;
+            Przejazd_PKP: PRZEJAZD_OTWARTY;
+        }
+    }
+}

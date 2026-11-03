@@ -52,13 +52,15 @@ skrzyzowanie "Wezel_Glowny" {
     }
 
     cykl {
+        // Krok 1: Faza A - Ruch glowny NS i pieszy NS
         krok(czas: 25s) {
             Pojazdy_NS: ZIELONE;
             Pojazdy_WE: CZERWONE;
-            Pieszy_NS: CZERWONE;
+            Pieszy_NS: ZIELONE;
             Tramwaj_T1: TRAM_STOJ;
             Przejazd_PKP: PRZEJAZD_OTWARTY;
         }
+        // Krok 2: Ostrzezenie dla kierunku NS
         krok(czas: 3s) {
             Pojazdy_NS: ZOLTE;
             Pojazdy_WE: CZERWONE;
@@ -66,6 +68,7 @@ skrzyzowanie "Wezel_Glowny" {
             Tramwaj_T1: TRAM_STOJ;
             Przejazd_PKP: PRZEJAZD_OTWARTY;
         }
+        // Krok 3: Przygotowanie kierunku WE
         krok(czas: 2s) {
             Pojazdy_NS: CZERWONE;
             Pojazdy_WE: CZERWONE_ZOLTE;
@@ -73,20 +76,39 @@ skrzyzowanie "Wezel_Glowny" {
             Tramwaj_T1: TRAM_STOJ;
             Przejazd_PKP: PRZEJAZD_OTWARTY;
         }
+        // Krok 4: Faza B - Ruch poprzeczny WE
         krok(czas: 20s) {
             Pojazdy_NS: CZERWONE;
             Pojazdy_WE: ZIELONE;
-            Pieszy_NS: ZIELONE;
-            Tramwaj_T1: TRAM_JAZDA;
+            Pieszy_NS: CZERWONE;
+            Tramwaj_T1: TRAM_STOJ;
             Przejazd_PKP: PRZEJAZD_OTWARTY;
         }
+        // Krok 5: Ostrzezenie dla kierunku WE
         krok(czas: 3s) {
             Pojazdy_NS: CZERWONE;
             Pojazdy_WE: ZOLTE;
             Pieszy_NS: CZERWONE;
+            Tramwaj_T1: TRAM_STOJ;
+            Przejazd_PKP: PRZEJAZD_OTWARTY;
+        }
+        // Krok 6: Faza C - Wydzielona faza tramwajowa
+        krok(czas: 15s) {
+            Pojazdy_NS: CZERWONE;
+            Pojazdy_WE: CZERWONE;
+            Pieszy_NS: CZERWONE;
+            Tramwaj_T1: TRAM_JAZDA;
+            Przejazd_PKP: PRZEJAZD_OTWARTY;
+        }
+        // Krok 7: Ostrzezenie dla tramwaju
+        krok(czas: 3s) {
+            Pojazdy_NS: CZERWONE;
+            Pojazdy_WE: CZERWONE;
+            Pieszy_NS: CZERWONE;
             Tramwaj_T1: TRAM_UWAGA;
             Przejazd_PKP: PRZEJAZD_OTWARTY;
         }
+        // Krok 8: Przygotowanie powrotu do ruchu NS
         krok(czas: 2s) {
             Pojazdy_NS: CZERWONE_ZOLTE;
             Pojazdy_WE: CZERWONE;
