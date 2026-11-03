@@ -26,7 +26,11 @@ directionDef
 
 signalType
     : 'pojazdy'
+    | 'samochody'
     | 'piesi'
+    | 'tramwaje'
+    | 'kolej'
+    | 'rowery'
     ;
 
 collisionsSection
@@ -52,12 +56,23 @@ stateAssignment
     ;
 
 lightState
+    // Podstawowe (samochody / pojazdy / rowery)
     : 'CZERWONE'
     | 'CZERWONE_ZOLTE'
     | 'ZIELONE'
     | 'ZOLTE'
     | 'ZOLTE_MIGAJACE'
     | 'WYLACZONE'
+    // Piesi
+    | 'ZIELONE_MIGAJACE'
+    // Tramwaje (sygnalizatory STK)
+    | 'TRAM_STOJ'
+    | 'TRAM_JAZDA'
+    | 'TRAM_UWAGA'
+    // Przejazd kolejowy / rogatki
+    | 'PRZEJAZD_OTWARTY'
+    | 'PRZEJAZD_OSTRZEZENIE'
+    | 'PRZEJAZD_ZAMKNIETY'
     ;
 
 // ==========================================

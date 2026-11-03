@@ -1,68 +1,78 @@
-# Instrukcja uruchomienia
+# Instrukcja Obsługi i Uruchomienia Kompilatora
 
-Kompilator języka TrafficLight DSL realizowany w ramach przedmiotu Języki formalne i kompilatory 2.
+Kompilator języka TrafficLight DSL realizowany w ramach przedmiotu **Języki formalne i kompilatory 2**.
 
-## Zasada działania
+---
 
-Program wczytuje plik konfiguracyjny `.traffic` opisujący skrzyżowanie, analizuje go za pomocą parsera ANTLR4, sprawdza reguły bezpieczeństwa (brak kolizji, minimalne czasy żółtego światła, poprawne sekwencje barw) i generuje tabelę przejść automatu skończonego w formacie JSON.
+## 1. Wymagania
 
-## Uruchomienie
+* Python 3.10 lub nowszy
+* Środowisko wirtualne `.venv` ze zainstalowaną biblioteką `antlr4-python3-runtime`
+* Java Runtime Environment (JRE/JDK) — wymagana tylko w przypadku regeneracji parsera z pliku `.g4`
 
-Przed uruchomieniem aktywuj środowisko wirtualne z wymaganą biblioteką `antlr4-python3-runtime`:
+---
 
-PowerShell:
+## 2. Aktywacja Środowiska
+
+**PowerShell (Windows):**
 ```powershell
 .\.venv\Scripts\Activate.ps1
 ```
 
-Wiersz poleceń (CMD):
+**Wiersz poleceń (CMD Windows):**
 ```cmd
 .\.venv\Scripts\activate.bat
 ```
 
-### Kompilacja poprawnego przykładu
+---
 
-Wypisanie tabeli stanów automatu na ekran:
+## 3. Kompilacja i Weryfikacja Plików `.traffic`
+
+### Weryfikacja i podgląd automatu DFA w konsoli:
 ```powershell
 python compiler.py examples/skrzyzowanie_proste.traffic -v
 ```
 
-Zapisanie wyniku do pliku JSON:
+### Zapisanie wygenerowanego kodu automatu DFA do pliku JSON:
 ```powershell
 python compiler.py examples/skrzyzowanie_proste.traffic -o automat.json
 ```
 
-### Test wykrywania kolizji
-
-Sprawdzenie zachowania na błędnej konfiguracji:
+### Test wykrywania kolizji (przykład błędny):
 ```powershell
 python compiler.py examples/skrzyzowanie_kolizja.traffic
 ```
-W tym przypadku kompilator przerwie działanie z błędem `CollisionConflictException`, wskazując numer wiersza i kierunki, które otrzymały zielone światło w tym samym kroku.
+Kompilator natychmiast przerywa działanie z kodem błędu `1` oraz komunikatem błędu semantycznego `CollisionConflictException`.
 
-## Regeneracja parsera
+---
 
-W razie edycji pliku `grammar/TrafficLight.g4` kod klas w `src/generated/` można zaktualizować za pomocą skryptu:
+## 4. Regeneracja Leksera i Parsera (ANTLR4)
 
-PowerShell:
+W przypadku modyfikacji pliku gramatyki `grammar/TrafficLight.g4`, należy uruchomić skrypt regenerujący kod Pythona w katalogu `src/generated/`:
+
+**PowerShell:**
 ```powershell
 .\generate_parser.ps1
 ```
 
-CMD:
+**CMD:**
 ```cmd
 generate_parser.bat
 ```
 
-Skrypt uruchamia `tools/antlr-4.13.2-complete.jar` z parametrami `-Dlanguage=Python3 -visitor`.
+---
 
-## Układ plików w projekcie
+## 5. Układ Katalogów Projektu
 
-* `compiler.py` - punkt wejściowy kompilatora, obsługuje parametry wiersza poleceń
-* `grammar/TrafficLight.g4` - plik źródłowy gramatyki ANTLR4
-* `src/generated/` - wygenerowany przez ANTLR kod leksera i parsera
-* `src/ast_nodes.py` - klasy reprezentujące węzły drzewa AST
-* `src/ast_builder.py` - implementacja visitora budującego AST z drzewa rozbioru
-* `src/semantic_validator.py` - moduł sprawdzający kolizje i poprawność przejść fazowych
-* `src/dfa_generator.py` - generator wynikowej struktury JSON automatu Moore'a
-* `examples/` - przykładowe pliki źródłowe
+* `compiler.py` — punkt wejściowy CLI (weryfikacja, błędy, generacja wyjścia)
+* `grammar/TrafficLight.g4` — formalna gramatyka ANTLR4
+* `src/`
+  * `ast_nodes.py` — struktury węzłów AST
+  * `ast_builder.py` — visitor przekształcający ParseTree w AST
+  * `semantic_validator.py` — statyczna weryfikacja kolizji, typów i czasów
+  * `dfa_generator.py` — generacja modelu automatu Moore'a (IR / JSON)
+  * `generated/` — pliki leksera i parsera wygenerowane przez ANTLR
+* `docs/`
+  * `specyfikacja_jezyka.md` — formalna gramatyka EBNF, tokeny i reguły
+  * `model_automatu.md` — formalny model automatu i dowód bezkolizyjności
+* `examples/` — przykładowe pliki źródłowe (`.traffic`)

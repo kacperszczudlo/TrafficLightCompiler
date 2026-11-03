@@ -1,94 +1,188 @@
-# TrafficLightCompiler
+# TrafficLightCompiler — Kompilator Języka Sygnalizacji Świetlnej
 
-Język dziedzinowy (DSL) oraz kompilator sterownika sygnalizacji świetlnej na skrzyżowaniach drogowych, realizowany w ramach przedmiotu **Języki formalne i kompilatory 2**.
+Dedykowany język dziedzinowy (DSL) oraz deterministyczny kompilator weryfikujący i generujący kod sterowników sygnalizacji świetlnej dla węzłów drogowych, tramwajowych i kolejowych.
 
-## 1. Cel i zakres projektu
+---
 
-Celem projektu jest zaprojektowanie formalnego języka opisu skrzyżowań drogowych oraz implementacja kompilatora, który:
-1. Weryfikuje poprawność składniową i leksykalną pliku konfiguracyjnego.
-2. Przeprowadza statyczną analizę semantyczną pod kątem bezpieczeństwa ruchu (detekcja kolizji faz zielonych, brak zdefiniowanych czasów ewakuacji, nieprawidłowe przejścia między stanami).
-3. Tłumaczy deklaratywny kod źródłowy na deterministyczny automat skończony (DFA) w formacie instrukcji sterownika lub pliku pośredniego (JSON/IR) dla symulatora ruchu.
+## 1. Wizja i Cel Projektu
 
-## 2. Zawartość dokumentacji
+* **Problem:** Sterowniki ruchu drogowego i kolejowego są tradycyjnie programowane w niskopoziomowych językach (C, drabinki PLC), co rodzi ryzyko krytycznych błędów ludzkich (jednoczesne zielone światła, kolizje z pieszymi lub tramwajem).
+* **Cel:** Zastąpienie podatnego na błędy ręcznego kodowania deklaratywnym, formalnym językiem DSL.
+* **Rozwiązanie:** Kompilator w czasie kompilacji wykonuje **statyczny dowód bezkolizyjności** oraz generuje gotową, zweryfikowaną tabelę stanów automatu Moore'a do wgrania na fizyczny sterownik lub do symulatora.
 
-* [Specyfikacja języka i gramatyka EBNF](docs/specyfikacja_jezyka.md): pełna definicja tokenów, gramatyka bezkontekstowa, reguły leksykalne i semantyczne.
-* [Model automatu i bezpieczeństwo](docs/model_automatu.md): formalny opis automatu Moore'a, macierz kolizji oraz weryfikowane niezmienniki.
-* [Przykłady kodu](examples/):
-  * `skrzyzowanie_proste.traffic`: poprawne skrzyżowanie czterowlotowe z pieszymi.
-  * `skrzyzowanie_kolizja.traffic`: przykład programu odrzucanego przez analizator semantyczny z powodu konfliktu kierunków.
+---
 
-## 3. Przykładowy kod w projektowanym DSL
+## 2. Co Opisuje Język (Domena)
 
+Język modeluje pełną strukturę węzła komunikacyjnego:
+1. **Topologię i sygnalizatory:**
+   * `samochody` / `pojazdy` — sygnalizacja 3-komorowa (czerwone, żółte, zielone).
+   * `piesi` — sygnalizacja 2-komorowa (czerwone, zielone).
+   * `tramwaje` — sygnalizacja torowa STK (stój / pion / kropka).
+   * `kolej` — sygnalizatory przejazdowe i rogatki kolejowe (otwarty / ostrzeżenie / zamknięty).
+   * `rowery` — sygnalizacja przejazdów rowerowych.
+2. **Macierz kolizji:** Graf wzajemnych wykluczeń relacji ruchowych (`A <-> B`).
+3. **Harmonogram czasowy (Cykl):** Dyskretne kroki czasowe z precyzyjnym czasem trwania (sekundy, milisekundy, minuty) i stanami wyjść.
+
+---
+
+## 3. Co Zapisuje Użytkownik
+
+Użytkownik tworzy plik tekstowy z rozszerzeniem `.traffic`. Składa się on z 3 głównych bloków:
+* `kierunki { ... }` — definicja identyfikatorów i typów sygnalizatorów.
+* `kolizje { ... }` — lista par kierunków, których tory jazdy przecinają się.
+* `cykl { ... }` — sekwencja kroków (`krok(czas: ...) { ... }`) z przypisaniem stanów.
+
+### Przykładowy program (`skrzyzowanie_zintegrowane.traffic`):
 ```text
-skrzyzowanie "Niepodleglosci_ArmiiKrajowej" {
+skrzyzowanie "Wezel_Glowny" {
     kierunki {
-        NS: pojazdy;
-        WE: pojazdy;
+        Pojazdy_NS: samochody;
+        Pojazdy_WE: samochody;
         Pieszy_NS: piesi;
+        Tramwaj_T1: tramwaje;
+        Przejazd_PKP: kolej;
     }
 
     kolizje {
-        NS <-> WE;
-        WE <-> Pieszy_NS;
+        Pojazdy_NS <-> Pojazdy_WE;
+        Pojazdy_WE <-> Pieszy_NS;
+        Pojazdy_WE <-> Tramwaj_T1;
+        Pojazdy_NS <-> Przejazd_PKP;
     }
 
     cykl {
         krok(czas: 25s) {
-            NS: ZIELONE;
-            WE: CZERWONE;
+            Pojazdy_NS: ZIELONE;
+            Pojazdy_WE: CZERWONE;
             Pieszy_NS: CZERWONE;
+            Tramwaj_T1: TRAM_STOJ;
+            Przejazd_PKP: PRZEJAZD_OTWARTY;
         }
         krok(czas: 3s) {
-            NS: ZOLTE;
-            WE: CZERWONE;
+            Pojazdy_NS: ZOLTE;
+            Pojazdy_WE: CZERWONE;
             Pieszy_NS: CZERWONE;
+            Tramwaj_T1: TRAM_STOJ;
+            Przejazd_PKP: PRZEJAZD_OTWARTY;
         }
         krok(czas: 2s) {
-            NS: CZERWONE;
-            WE: CZERWONE_ZOLTE;
+            Pojazdy_NS: CZERWONE;
+            Pojazdy_WE: CZERWONE_ZOLTE;
             Pieszy_NS: CZERWONE;
+            Tramwaj_T1: TRAM_STOJ;
+            Przejazd_PKP: PRZEJAZD_OTWARTY;
         }
         krok(czas: 20s) {
-            NS: CZERWONE;
-            WE: ZIELONE;
+            Pojazdy_NS: CZERWONE;
+            Pojazdy_WE: ZIELONE;
             Pieszy_NS: ZIELONE;
+            Tramwaj_T1: TRAM_JAZDA;
+            Przejazd_PKP: PRZEJAZD_OTWARTY;
         }
         krok(czas: 3s) {
-            NS: CZERWONE;
-            WE: ZOLTE;
+            Pojazdy_NS: CZERWONE;
+            Pojazdy_WE: ZOLTE;
             Pieszy_NS: CZERWONE;
+            Tramwaj_T1: TRAM_UWAGA;
+            Przejazd_PKP: PRZEJAZD_OTWARTY;
         }
         krok(czas: 2s) {
-            NS: CZERWONE_ZOLTE;
-            WE: CZERWONE;
+            Pojazdy_NS: CZERWONE_ZOLTE;
+            Pojazdy_WE: CZERWONE;
             Pieszy_NS: CZERWONE;
+            Tramwaj_T1: TRAM_STOJ;
+            Przejazd_PKP: PRZEJAZD_OTWARTY;
         }
     }
 }
 ```
 
-## 4. Architektura kompilatora
+---
+
+## 4. Co Otrzymujemy na Wyjściu (Output)
+
+Kompilator generuje dwa poziomy wyjścia:
+
+### Poziom 1: Werdykt Poprawności (Status Validacji)
+* `VALID: YES` (kod wyjścia `0`): Program jest poprawny składniowo, typowo i w 100% bezpieczny kolizyjnie.
+* `VALID: NO` (kod wyjścia `1`): Program odrzucony z precyzyjnym wskazaniem numeru linii, kolumny i reguły (np. `CollisionConflictException`, `InvalidPhaseTransitionError`).
+
+### Poziom 2: Tabela Przejść Automatu Moore'a (IR / JSON)
+Deterministyczny model automatu skończonego gotowy do wgrania na mikrokontroler lub do symulatora:
+```json
+{
+  "name": "Wezel_Glowny",
+  "directions": {
+    "Pojazdy_NS": "samochody",
+    "Pojazdy_WE": "samochody",
+    "Pieszy_NS": "piesi",
+    "Tramwaj_T1": "tramwaje",
+    "Przejazd_PKP": "kolej"
+  },
+  "states": [
+    {
+      "id": 0,
+      "duration_ms": 25000,
+      "outputs": {
+        "Pojazdy_NS": "ZIELONE",
+        "Pojazdy_WE": "CZERWONE",
+        "Pieszy_NS": "CZERWONE",
+        "Tramwaj_T1": "TRAM_STOJ",
+        "Przejazd_PKP": "PRZEJAZD_OTWARTY"
+      },
+      "next_state": 1
+    }
+  ]
+}
+```
+
+---
+
+## 5. Spis Mikroczynności Kompilatora (Pipeline)
+
+Przetwarzanie kodu odbywa się w 5 deterministycznych fazach:
 
 ```
-[ Plik .traffic ]
-       │
-       ▼
- ┌───────────┐
- │   Lexer   │  ──> Strumień tokenów
- └───────────┘
-       │
-       ▼
- ┌───────────┐
- │  Parser   │  ──> Drzewo rozbioru (AST)
- └───────────┘
-       │
-       ▼
- ┌──────────────────────┐
- │ Semantic Validator   │  ──> Weryfikacja kolizji, typów i czasów
- └──────────────────────┘
-       │
-       ▼
- ┌──────────────────────┐
- │ Generator kodu / IR  │  ──> Tabela przejść DFA (JSON) / Bytecode sterownika
- └──────────────────────┘
+[ Kod źródłowy .traffic ]
+          │
+          ▼
+1. Skanowanie leksykalne (Lexer)       --> Strumień tokenów (słowa kluczowe, czasy, identyfikatory)
+          │
+          ▼
+2. Rozbiór składniowy (Parser)         --> Drzewo parsowania (ParseTree wg ANTLR4)
+          │
+          ▼
+3. Konstrukcja AST (AstVisitor)        --> Zunifikowane węzły obiektowe (IntersectionNode, StepNode)
+          │
+          ▼
+4. Weryfikacja semantyczna (Validator) --> Statyczny dowód bezpieczeństwa:
+                                           * Poprawność deklaracji kierunków
+                                           * Zgodność typów świateł z sygnalizatorami
+                                           * Weryfikacja macierzy kolizji dla każdego kroku
+                                           * Weryfikacja sekwencji fazowych i czasów ewakuacji
+          │
+          ▼
+5. Generacja kodu DFA (IR Generator)   --> Zserializowany deterministyczny automat Moore'a (JSON)
 ```
+
+---
+
+## 6. Co Jest Poprawne, a Co Nie (Przykłady)
+
+| Sytuacja | Werdykt | Przyczyna |
+| :--- | :---: | :--- |
+| Bezkolizyjne fazy zielone z zachowaniem czasów żółtych $\ge 2\text{s}$ | **TAK (YES)** | Zgodne z regułami ruchu i brakiem konfliktów w macierzy. |
+| Jednoczesne `ZIELONE` dla kierunków zadeklarowanych w `kolizje` | **NIE (NO)** | Błąd `CollisionConflictException`. Wykryto ryzyko zderzenia. |
+| Przejście `ZIELONE` $\to$ `CZERWONE` dla samochodów bez fazy `ZOLTE` | **NIE (NO)** | Błąd `InvalidPhaseTransitionError`. Wymagana faza ostrzegawcza. |
+| Przypisanie stanu `ZOLTE` dla sygnalizatora typu `piesi` | **NIE (NO)** | Błąd `InvalidLightStateForTypeException`. Piesi mają tylko czerwone/zielone. |
+| Faza `ZOLTE` o czasie krótszym niż $2\text{s}$ (np. $1\text{s}$) | **NIE (NO)** | Błąd `InvalidTimeDurationError`. Niedotrzymanie minimalnego czasu bezpieczeństwa. |
+| Pominięcie stanu któregoś kierunku w definicji kroku | **NIE (NO)** | Błąd `IncompleteStepDefinitionError`. Stan każdego sygnalizatora musi być jednoznaczny. |
+
+---
+
+## 7. Nawigacja po Dokumentacji
+
+* [docs/specyfikacja_jezyka.md](docs/specyfikacja_jezyka.md) — Kompletna formalna gramatyka EBNF, tokeny, typy i reguły.
+* [docs/model_automatu.md](docs/model_automatu.md) — Formalny aparat matematyczny automatu Moore'a, macierz kolizji oraz specyfikacja wyjściowego JSON.
+* [INSTRUKCJA_OBSLUGI.md](INSTRUKCJA_OBSLUGI.md) — Instrukcja instalacji, uruchomienia kompilatora i regeneracji parsera.
