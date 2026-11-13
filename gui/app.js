@@ -501,19 +501,44 @@ document.addEventListener("DOMContentLoaded", () => {
     // Ruch aut
     cars.forEach((car) => {
       let speed = car.speed * simSpeed;
+      let yielding = false;
+
+      // Inteligentne ustępowanie pierwszeństwa pieszemu na przejściu:
+      // Jeśli pieszy znajduje się na pasach (x: 330..470), auta zatrzymują się przed zebrą!
+      const isPedestrianOnCrosswalk = pedestrians.some(
+        (p) => p.x >= 325 && p.x <= 475,
+      );
+
       if (car.dir === "NS") {
         const atStopLine = car.y >= 150 && car.y <= 190;
-        if (!canDriveNS && atStopLine) speed = 0;
+        const beforeCrosswalk = car.y >= 310 && car.y <= 380;
+
+        if (!canDriveNS && atStopLine) {
+          speed = 0;
+        } else if (beforeCrosswalk && isPedestrianOnCrosswalk) {
+          speed = 0; // Auto ustępuje pieszemu na pasach!
+          yielding = true;
+        }
+        car.yielding = yielding;
         car.y += speed * dt;
         if (car.y > 660) car.y = -60;
       } else if (car.dir === "SN") {
         const atStopLine = car.y <= 450 && car.y >= 410;
-        if (!canDriveNS && atStopLine) speed = 0;
+        const beforeCrosswalk = car.y <= 475 && car.y >= 415;
+
+        if (!canDriveNS && atStopLine) {
+          speed = 0;
+        } else if (beforeCrosswalk && isPedestrianOnCrosswalk) {
+          speed = 0; // Auto ustępuje pieszemu na pasach!
+          yielding = true;
+        }
+        car.yielding = yielding;
         car.y += speed * dt;
         if (car.y < -60) car.y = 660;
       } else if (car.dir === "WE") {
         const atStopLine = car.x >= 250 && car.x <= 290;
         if (!canDriveWE && atStopLine) speed = 0;
+        car.y += 0;
         car.x += speed * dt;
         if (car.x > 860) car.x = -60;
       } else if (car.dir === "EW") {
@@ -828,6 +853,22 @@ document.addEventListener("DOMContentLoaded", () => {
         // Szyby
         ctx.fillStyle = "#1e293b";
         ctx.fillRect(car.x - 9, car.y - 8, 18, 16);
+
+        // Światła stopu / ustąpienie pieszemu
+        if (car.yielding) {
+          ctx.fillStyle = "#ef4444";
+          ctx.shadowColor = "#ef4444";
+          ctx.shadowBlur = 8;
+          const backY = car.dir === "NS" ? car.y - 20 : car.y + 18;
+          ctx.fillRect(car.x - 11, backY, 6, 2);
+          ctx.fillRect(car.x + 5, backY, 6, 2);
+          ctx.shadowBlur = 0;
+
+          // Etykieta ustąpienia
+          ctx.font = "bold 9px sans-serif";
+          ctx.fillStyle = "#fecaca";
+          ctx.fillText("🛑 USTĘPUJE", car.x - 24, car.y - 25);
+        }
       } else {
         ctx.fillRect(car.x - 20, car.y - 12, 40, 24);
         ctx.strokeRect(car.x - 20, car.y - 12, 40, 24);

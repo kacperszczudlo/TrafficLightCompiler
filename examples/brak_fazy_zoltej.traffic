@@ -1,0 +1,29 @@
+// Przykład błędny (Negatywny test sekwencji faz):
+// Niedozwolone bezpośrednie przejście ze światła ZIELONEGO w CZERWONE
+// bez fazy ostrzegawczej ZÓŁTEJ (grozi najechaniem na tył pojazdu).
+// Kompilator musi przerwać kompilację z błędem InvalidPhaseTransitionError!
+
+skrzyzowanie "Niebezpieczny_Brak_Zoltego" {
+    kierunki {
+        Wlot_Glowny: pojazdy;
+        Wlot_Boczny: pojazdy;
+    }
+
+    kolizje {
+        Wlot_Glowny <-> Wlot_Boczny;
+    }
+
+    cykl {
+        // Krok 1: Zielone światło dla wlotu głównego
+        krok(czas: 20s) {
+            Wlot_Glowny: ZIELONE;
+            Wlot_Boczny: CZERWONE;
+        }
+
+        // Krok 2: BŁĄD! Natychmiastowe przejście w czerwone bez żółtego!
+        krok(czas: 15s) {
+            Wlot_Glowny: CZERWONE;
+            Wlot_Boczny: ZIELONE;
+        }
+    }
+}

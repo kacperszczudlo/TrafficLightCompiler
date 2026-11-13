@@ -1,0 +1,103 @@
+// Przykład z życia wzięty: Węzeł autostradowy typu karo (diamentowy)
+// Obsługuje zjazd z autostrady A4 na drogę krajową, lewoskręty oraz ruch pieszy pod wiaduktem.
+
+skrzyzowanie "Wezel_Autostradowy_A4_Diament" {
+    kierunki {
+        Droga_Krajowa_Kierunek_A: pojazdy;
+        Droga_Krajowa_Kierunek_B: pojazdy;
+        Zjazd_Autostrada_A4: pojazdy;
+        Lewoskret_Na_Autostrade: pojazdy;
+        Piesi_Pod_Wiaduktem: piesi;
+    }
+
+    kolizje {
+        Zjazd_Autostrada_A4 <-> Droga_Krajowa_Kierunek_A;
+        Zjazd_Autostrada_A4 <-> Droga_Krajowa_Kierunek_B;
+        Lewoskret_Na_Autostrade <-> Droga_Krajowa_Kierunek_A;
+        Droga_Krajowa_Kierunek_A <-> Piesi_Pod_Wiaduktem;
+        Zjazd_Autostrada_A4 <-> Piesi_Pod_Wiaduktem;
+    }
+
+    cykl {
+        // Faza 1: Ruch główny na drodze krajowej (oba kierunki swobodne)
+        krok(czas: 35s) {
+            Droga_Krajowa_Kierunek_A: ZIELONE;
+            Droga_Krajowa_Kierunek_B: ZIELONE;
+            Zjazd_Autostrada_A4: CZERWONE;
+            Lewoskret_Na_Autostrade: CZERWONE;
+            Piesi_Pod_Wiaduktem: CZERWONE;
+        }
+
+        // Faza 2: Ostrzeżenie dla drogi krajowej
+        krok(czas: 3s) {
+            Droga_Krajowa_Kierunek_A: ZOLTE;
+            Droga_Krajowa_Kierunek_B: ZOLTE;
+            Zjazd_Autostrada_A4: CZERWONE;
+            Lewoskret_Na_Autostrade: CZERWONE;
+            Piesi_Pod_Wiaduktem: CZERWONE;
+        }
+
+        // Faza 3: Przygotowanie zjazdu z autostrady i pieszych
+        krok(czas: 2s) {
+            Droga_Krajowa_Kierunek_A: CZERWONE;
+            Droga_Krajowa_Kierunek_B: CZERWONE;
+            Zjazd_Autostrada_A4: CZERWONE_ZOLTE;
+            Lewoskret_Na_Autostrade: CZERWONE;
+            Piesi_Pod_Wiaduktem: CZERWONE;
+        }
+
+        // Faza 4: Rozładowanie zjazdu z autostrady A4 (zapobieganie zatorom na pasie zjazdowym)
+        krok(czas: 25s) {
+            Droga_Krajowa_Kierunek_A: CZERWONE;
+            Droga_Krajowa_Kierunek_B: CZERWONE;
+            Zjazd_Autostrada_A4: ZIELONE;
+            Lewoskret_Na_Autostrade: CZERWONE;
+            Piesi_Pod_Wiaduktem: CZERWONE;
+        }
+
+        // Faza 5: Ostrzeżenie dla zjazdu z autostrady
+        krok(czas: 3s) {
+            Droga_Krajowa_Kierunek_A: CZERWONE;
+            Droga_Krajowa_Kierunek_B: CZERWONE;
+            Zjazd_Autostrada_A4: ZOLTE;
+            Lewoskret_Na_Autostrade: CZERWONE;
+            Piesi_Pod_Wiaduktem: CZERWONE;
+        }
+
+        // Faza 6: Przygotowanie wydzielonego lewoskrętu na autostradę
+        krok(czas: 2s) {
+            Droga_Krajowa_Kierunek_A: CZERWONE;
+            Droga_Krajowa_Kierunek_B: CZERWONE;
+            Zjazd_Autostrada_A4: CZERWONE;
+            Lewoskret_Na_Autostrade: CZERWONE_ZOLTE;
+            Piesi_Pod_Wiaduktem: CZERWONE;
+        }
+
+        // Faza 7: Wydzielony bezpieczny lewoskręt na autostradę oraz bezpieczne przejście pieszych
+        krok(czas: 18s) {
+            Droga_Krajowa_Kierunek_A: CZERWONE;
+            Droga_Krajowa_Kierunek_B: CZERWONE;
+            Zjazd_Autostrada_A4: CZERWONE;
+            Lewoskret_Na_Autostrade: ZIELONE;
+            Piesi_Pod_Wiaduktem: ZIELONE;
+        }
+
+        // Faza 8: Ostrzeżenie przed powrotem do fazy głównej
+        krok(czas: 3s) {
+            Droga_Krajowa_Kierunek_A: CZERWONE;
+            Droga_Krajowa_Kierunek_B: CZERWONE;
+            Zjazd_Autostrada_A4: CZERWONE;
+            Lewoskret_Na_Autostrade: ZOLTE;
+            Piesi_Pod_Wiaduktem: CZERWONE;
+        }
+
+        // Faza 9: Przygotowanie powrotu do ruchu głównego
+        krok(czas: 2s) {
+            Droga_Krajowa_Kierunek_A: CZERWONE_ZOLTE;
+            Droga_Krajowa_Kierunek_B: CZERWONE_ZOLTE;
+            Zjazd_Autostrada_A4: CZERWONE;
+            Lewoskret_Na_Autostrade: CZERWONE;
+            Piesi_Pod_Wiaduktem: CZERWONE;
+        }
+    }
+}

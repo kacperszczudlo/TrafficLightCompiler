@@ -1,0 +1,124 @@
+// Przykład z życia wzięty: Duże skrzyżowanie z ruchem okrężnym i tramwajem
+// wzorowane na krakowskim Rondzie Mogilskim / Grzegórzeckim.
+// Zawiera 4 wloty kołowe, wydzielone torowisko tramwajowe przez środek ronda oraz przejścia dla pieszych.
+
+skrzyzowanie "Rondo_Mogilskie_Krakow" {
+    kierunki {
+        Wlot_Polnoc: pojazdy;
+        Wlot_Poludnie: pojazdy;
+        Wlot_Wschod: pojazdy;
+        Wlot_Zachod: pojazdy;
+        Tramwaj_Linia_Glowna: tramwaje;
+        Piesi_Wyspa_Centralna: piesi;
+        Droga_Rowerowa_Obwodowa: rowery;
+    }
+
+    kolizje {
+        // Ruch kołowy z poprzecznych wlotów i przeploty
+        Wlot_Polnoc <-> Wlot_Wschod;
+        Wlot_Polnoc <-> Wlot_Zachod;
+        Wlot_Poludnie <-> Wlot_Wschod;
+        Wlot_Poludnie <-> Wlot_Zachod;
+
+        // Tramwaj przecinający tarczę ronda koliduje ze wszystkimi wlotami kołowymi
+        Tramwaj_Linia_Glowna <-> Wlot_Polnoc;
+        Tramwaj_Linia_Glowna <-> Wlot_Poludnie;
+        Tramwaj_Linia_Glowna <-> Wlot_Wschod;
+        Tramwaj_Linia_Glowna <-> Wlot_Zachod;
+
+        // Piesi kolidują z wlotami przecinającymi przejście
+        Piesi_Wyspa_Centralna <-> Wlot_Polnoc;
+        Piesi_Wyspa_Centralna <-> Wlot_Poludnie;
+        Droga_Rowerowa_Obwodowa <-> Wlot_Wschod;
+    }
+
+    cykl {
+        // Faza 1: Otwarcie wlotu Północ-Południe (Ruch główny)
+        krok(czas: 25s) {
+            Wlot_Polnoc: ZIELONE;
+            Wlot_Poludnie: ZIELONE;
+            Wlot_Wschod: CZERWONE;
+            Wlot_Zachod: CZERWONE;
+            Tramwaj_Linia_Glowna: TRAM_STOJ;
+            Piesi_Wyspa_Centralna: CZERWONE;
+            Droga_Rowerowa_Obwodowa: ZIELONE;
+        }
+
+        // Faza 2: Ostrzeżenie dla wlotu Północ-Południe
+        krok(czas: 3s) {
+            Wlot_Polnoc: ZOLTE;
+            Wlot_Poludnie: ZOLTE;
+            Wlot_Wschod: CZERWONE;
+            Wlot_Zachod: CZERWONE;
+            Tramwaj_Linia_Glowna: TRAM_STOJ;
+            Piesi_Wyspa_Centralna: CZERWONE;
+            Droga_Rowerowa_Obwodowa: ZOLTE;
+        }
+
+        // Faza 3: Faza priorytetowa dla tramwaju przez tarczę ronda
+        krok(czas: 20s) {
+            Wlot_Polnoc: CZERWONE;
+            Wlot_Poludnie: CZERWONE;
+            Wlot_Wschod: CZERWONE;
+            Wlot_Zachod: CZERWONE;
+            Tramwaj_Linia_Glowna: TRAM_JAZDA;
+            Piesi_Wyspa_Centralna: ZIELONE;
+            Droga_Rowerowa_Obwodowa: CZERWONE;
+        }
+
+        // Faza 4: Ostrzeżenie dla tramwaju
+        krok(czas: 3s) {
+            Wlot_Polnoc: CZERWONE;
+            Wlot_Poludnie: CZERWONE;
+            Wlot_Wschod: CZERWONE;
+            Wlot_Zachod: CZERWONE;
+            Tramwaj_Linia_Glowna: TRAM_UWAGA;
+            Piesi_Wyspa_Centralna: CZERWONE;
+            Droga_Rowerowa_Obwodowa: CZERWONE;
+        }
+
+        // Faza 5: Przygotowanie wlotu Wschód-Zachód
+        krok(czas: 2s) {
+            Wlot_Polnoc: CZERWONE;
+            Wlot_Poludnie: CZERWONE;
+            Wlot_Wschod: CZERWONE_ZOLTE;
+            Wlot_Zachod: CZERWONE_ZOLTE;
+            Tramwaj_Linia_Glowna: TRAM_STOJ;
+            Piesi_Wyspa_Centralna: CZERWONE;
+            Droga_Rowerowa_Obwodowa: CZERWONE;
+        }
+
+        // Faza 6: Otwarcie wlotu Wschód-Zachód
+        krok(czas: 22s) {
+            Wlot_Polnoc: CZERWONE;
+            Wlot_Poludnie: CZERWONE;
+            Wlot_Wschod: ZIELONE;
+            Wlot_Zachod: ZIELONE;
+            Tramwaj_Linia_Glowna: TRAM_STOJ;
+            Piesi_Wyspa_Centralna: CZERWONE;
+            Droga_Rowerowa_Obwodowa: CZERWONE;
+        }
+
+        // Faza 7: Ostrzeżenie dla wlotu Wschód-Zachód
+        krok(czas: 3s) {
+            Wlot_Polnoc: CZERWONE;
+            Wlot_Poludnie: CZERWONE;
+            Wlot_Wschod: ZOLTE;
+            Wlot_Zachod: ZOLTE;
+            Tramwaj_Linia_Glowna: TRAM_STOJ;
+            Piesi_Wyspa_Centralna: CZERWONE;
+            Droga_Rowerowa_Obwodowa: CZERWONE;
+        }
+
+        // Faza 8: Przygotowanie powrotu do wlotu Północ-Południe
+        krok(czas: 2s) {
+            Wlot_Polnoc: CZERWONE_ZOLTE;
+            Wlot_Poludnie: CZERWONE_ZOLTE;
+            Wlot_Wschod: CZERWONE;
+            Wlot_Zachod: CZERWONE;
+            Tramwaj_Linia_Glowna: TRAM_STOJ;
+            Piesi_Wyspa_Centralna: CZERWONE;
+            Droga_Rowerowa_Obwodowa: CZERWONE_ZOLTE;
+        }
+    }
+}

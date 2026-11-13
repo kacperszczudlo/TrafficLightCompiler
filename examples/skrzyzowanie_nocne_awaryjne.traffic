@@ -1,0 +1,32 @@
+// Przykład z życia wzięty: Tryb nocny / awaryjny (godz. 23:00 - 05:00)
+// Wszystkie sygnalizatory kołowe nadają sygnał żółty pulsujący (ostrzeżenie, pierwszeństwo wg znaków),
+// a sygnalizatory pieszych i rowerów są wygaszone.
+
+skrzyzowanie "Skrzyzowanie_Tryb_Nocny_Awaryjny" {
+    kierunki {
+        Wlot_Glowny_NS: pojazdy;
+        Wlot_Podporzadkowany_WE: pojazdy;
+        Przejscie_Pieszych: piesi;
+    }
+
+    kolizje {
+        Wlot_Glowny_NS <-> Wlot_Podporzadkowany_WE;
+        Wlot_Glowny_NS <-> Przejscie_Pieszych;
+    }
+
+    cykl {
+        // Krok 1: Impuls żółtego światła ostrzegawczego
+        krok(czas: 1s) {
+            Wlot_Glowny_NS: ZOLTE_MIGAJACE;
+            Wlot_Podporzadkowany_WE: ZOLTE_MIGAJACE;
+            Przejscie_Pieszych: WYLACZONE;
+        }
+
+        // Krok 2: Podtrzymanie pulsu ostrzegawczego
+        krok(czas: 1s) {
+            Wlot_Glowny_NS: ZOLTE_MIGAJACE;
+            Wlot_Podporzadkowany_WE: ZOLTE_MIGAJACE;
+            Przejscie_Pieszych: WYLACZONE;
+        }
+    }
+}
