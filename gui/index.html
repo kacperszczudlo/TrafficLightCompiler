@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TrafficLightCompiler — IDE & Symulator Skrzyżowania</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚦</text></svg>">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Górny pasek nawigacji -->
+    <header class="app-header">
+      <div class="header-brand">
+        <div class="traffic-light-icon">
+          <span class="light red"></span>
+          <span class="light yellow"></span>
+          <span class="light green"></span>
+        </div>
+        <div>
+          <h1>TrafficLight<span>Compiler</span></h1>
+          <p class="subtitle">Kompilator DSL i Deterministyczny Symulator Automatu Moore'a</p>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <div class="example-selector-group">
+          <label for="exampleSelect">Szablon:</label>
+          <select id="exampleSelect">
+            <option value="">Wybierz przykład...</option>
+          </select>
+        </div>
+
+        <button id="compileBtn" class="btn btn-primary" title="Weryfikuje semantykę i generuje kod automatu (F5 lub Ctrl+Enter)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+          Kompiluj (F5)
+        </button>
+
+        <div id="compilerStatusBadge" class="status-badge ready">
+          <span class="status-dot"></span>
+          <span class="status-text">Gotowy</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Główny układ dwukolumnowy -->
+    <main class="main-content">
+      <!-- LEWA KOLUMNA: Edytor i Logi / Kod -->
+      <section class="left-panel">
+        <div class="editor-card">
+          <div class="panel-header">
+            <div class="tab-title">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
+              <span>Kod źródłowy (.traffic)</span>
+            </div>
+            <span class="file-tag" id="currentFileName">skrzyzowanie.traffic</span>
+          </div>
+          
+          <div class="editor-wrapper">
+            <textarea id="codeEditor" spellcheck="false" placeholder="// Wklej lub napisz tutaj kod .traffic..."></textarea>
+          </div>
+        </div>
+
+        <!-- Dolne zakładki inspekcji -->
+        <div class="inspector-card">
+          <div class="inspector-tabs">
+            <button class="tab-btn active" data-tab="logsTab">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+              Pipeline Kompilatora
+            </button>
+            <button class="tab-btn" data-tab="targetCodeTab">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+              Kod Sterownika (Python)
+            </button>
+            <button class="tab-btn" data-tab="dfaTab">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+              Automat Moore'a (IR JSON)
+            </button>
+          </div>
+
+          <div class="tab-content active" id="logsTab">
+            <div id="compilerLogsContainer" class="console-box">
+              <div class="console-line info">[*] Gotowy do kompilacji. Wybierz szablon z góry lub wciśnij "Kompiluj".</div>
+            </div>
+          </div>
+
+          <div class="tab-content" id="targetCodeTab">
+            <div class="code-output-header">
+              <span>sterownik.py (autonomiczny program sterujący)</span>
+              <button id="downloadCodeBtn" class="btn btn-secondary btn-sm" disabled>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                Pobierz sterownik.py
+              </button>
+            </div>
+            <pre id="targetCodeContainer" class="code-box"><code>// Skompiluj program, aby wygenerować kod sterownika Python...</code></pre>
+          </div>
+
+          <div class="tab-content" id="dfaTab">
+            <pre id="dfaJsonContainer" class="code-box"><code>// Zserializowany automat skończony pojawi się tutaj po kompilacji...</code></pre>
+          </div>
+        </div>
+      </section>
+
+      <!-- PRAWA KOLUMNA: Symulator Skrzyżowania 2D -->
+      <section class="right-panel">
+        <div class="simulation-card">
+          <div class="sim-header">
+            <div class="sim-title-group">
+              <h2>Symulacja Skrzyżowania 2D</h2>
+              <span id="activeIntersectionName" class="badge-tag">Brak aktywnego programu</span>
+            </div>
+
+            <div class="sim-controls">
+              <button id="playPauseBtn" class="btn btn-secondary btn-sm" disabled>
+                <svg id="playPauseIcon" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                <span id="playPauseText">Uruchom</span>
+              </button>
+              <button id="stepBtn" class="btn btn-secondary btn-sm" disabled title="Krok do następnego stanu">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 4 15 12 5 20 5 4"></polygon><line x1="19" y1="5" x2="19" y2="19" stroke="currentColor" stroke-width="3"></line></svg>
+                Krok
+              </button>
+              <div class="speed-control">
+                <label for="simSpeed">Prędkość:</label>
+                <select id="simSpeed">
+                  <option value="0.5">0.5x</option>
+                  <option value="1.0" selected>1.0x</option>
+                  <option value="2.0">2.0x</option>
+                  <option value="4.0">4.0x</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Pasek bieżącego stanu automatu -->
+          <div class="state-dashboard">
+            <div class="state-metric">
+              <span class="metric-label">Stan Automatu</span>
+              <span id="stateIdDisplay" class="metric-value">—</span>
+            </div>
+            <div class="state-metric">
+              <span class="metric-label">Krok Cyklu</span>
+              <span id="stepProgressDisplay" class="metric-value">— / —</span>
+            </div>
+            <div class="state-metric time-metric">
+              <span class="metric-label">Pozostały Czas</span>
+              <span id="stateTimeDisplay" class="metric-value">— s</span>
+            </div>
+            <div class="state-metric">
+              <span class="metric-label">Ukończonych Cykli</span>
+              <span id="cycleCountDisplay" class="metric-value">0</span>
+            </div>
+          </div>
+
+          <!-- Pasek postępu czasu stanu -->
+          <div class="progress-bar-container">
+            <div id="stateProgressBar" class="progress-bar-fill"></div>
+          </div>
+
+          <!-- Alert o kolizji (widoczny przy błędzie) -->
+          <div id="collisionAlertBanner" class="collision-banner hidden">
+            <div class="alert-icon">⚠️</div>
+            <div class="alert-content">
+              <h3>BŁĄD BEZPIECZEŃSTWA: Wykryto Kolizję!</h3>
+              <p id="collisionAlertText">Wystąpił konflikt kolizyjny.</p>
+            </div>
+          </div>
+
+          <!-- Canvas 2D -->
+          <div class="canvas-wrapper">
+            <canvas id="trafficCanvas" width="800" height="600"></canvas>
+          </div>
+
+          <!-- Wskaźniki sygnałów w czasie rzeczywistym -->
+          <div class="signals-status-grid" id="signalsGrid">
+            <!-- Dynamicznie generowane chipy kierunków -->
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

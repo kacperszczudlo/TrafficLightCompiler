@@ -124,34 +124,41 @@ skrzyzowanie "Wezel_Glowny" {
 
 ## 4. Co Otrzymujemy na Wyjściu (Output)
 
-Kompilator generuje dwa poziomy wyjścia:
+Kompilator generuje trzy poziomy wyjścia:
 
-### Poziom 1: Werdykt Poprawności (Status Validacji)
+### Poziom 1: Werdykt Poprawności (Status Walidacji)
 * `VALID: YES` (kod wyjścia `0`): Program jest poprawny składniowo, typowo i w 100% bezpieczny kolizyjnie.
 * `VALID: NO` (kod wyjścia `1`): Program odrzucony z precyzyjnym wskazaniem numeru linii, kolumny i reguły (np. `CollisionConflictException`, `InvalidPhaseTransitionError`).
 
-### Poziom 2: Tabela Przejść Automatu Moore'a (IR / JSON)
-Deterministyczny model automatu skończonego gotowy do wgrania na mikrokontroler lub do symulatora:
+### Poziom 2: Wykonywalny Kod Sterownika (Target Code / Python)
+Kompilator generuje samodzielny program w języku Python (`sterownik.py`) z klasą `TrafficLightController`, precyzyjną pętlą czasu rzeczywistego (`time.monotonic()`) oraz kolorowym podglądem stanów w konsoli:
+```powershell
+python compiler.py examples/skrzyzowanie_zintegrowane.traffic -o sterownik.py
+python sterownik.py --speed 2.0
+```
+
+### Poziom 3: Tabela Przejść Automatu Moore'a (IR / JSON)
+Deterministyczny model automatu skończonego (IR) gotowy do wgrania na mikrokontroler lub do symulatora:
 ```json
 {
   "name": "Wezel_Glowny",
   "directions": {
-    "Pojazdy_NS": "samochody",
-    "Pojazdy_WE": "samochody",
-    "Pieszy_NS": "piesi",
-    "Tramwaj_T1": "tramwaje",
-    "Przejazd_PKP": "kolej"
+    "Pojazdy_NS": "vehicles_3color",
+    "Pojazdy_WE": "vehicles_3color",
+    "Pieszy_NS": "pedestrians_2color",
+    "Tramwaj_T1": "tram_stk",
+    "Przejazd_PKP": "railway_crossing"
   },
   "states": [
     {
       "id": 0,
       "duration_ms": 25000,
       "outputs": {
-        "Pojazdy_NS": "ZIELONE",
-        "Pojazdy_WE": "CZERWONE",
-        "Pieszy_NS": "CZERWONE",
-        "Tramwaj_T1": "TRAM_STOJ",
-        "Przejazd_PKP": "PRZEJAZD_OTWARTY"
+        "Pojazdy_NS": "GREEN",
+        "Pojazdy_WE": "RED",
+        "Pieszy_NS": "GREEN",
+        "Tramwaj_T1": "TRAM_STOP",
+        "Przejazd_PKP": "CROSSING_OPEN"
       },
       "next_state": 1
     }
@@ -185,8 +192,23 @@ Przetwarzanie kodu odbywa się w 5 deterministycznych fazach:
                                            * Weryfikacja sekwencji fazowych i czasów ewakuacji
           │
           ▼
-5. Generacja kodu DFA (IR Generator)   --> Zserializowany deterministyczny automat Moore'a (JSON)
+5. Generacja kodu docelowego           --> Samodzielny sterownik Python (sterownik.py)
+                                           oraz model automatu Moore'a (IR JSON)
 ```
+
+---
+
+## 5a. Interaktywne GUI i Symulator 2D
+
+Dla pełnej prezentacji działania kompilatora przygotowano lokalną aplikację webową (standardowy `http.server` w Pythonie — **0 dodatkowych instalacji pip**):
+```powershell
+python run_gui.py
+```
+Aplikacja otwiera się w przeglądarce (`http://localhost:8000`) i oferuje:
+* Edytor kodu z wgranymi szablonami,
+* Podgląd logów każdego z 5 etapów kompilacji,
+* Wizualny symulator 2D na Canvasie ze zmieniającymi się światłami, ruchem aut, pieszymi, tramwajem i rogatkami kolejowymi,
+* Czerwony alarm w czasie rzeczywistym przy próbie skompilowania kolizji.
 
 ---
 
