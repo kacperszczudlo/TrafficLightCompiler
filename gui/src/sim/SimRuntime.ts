@@ -109,6 +109,8 @@ export class SimRuntime {
   /** Pociąg po lewej (N→S); progress poza [0,1] = poza kadrem. */
   private trainT = -0.35;
   private trainNode: Konva.Group | null = null;
+  /** Czas zatrzymania pociągu przed przejazdem (do przerywania ewentualnych deadlocków). */
+  private trainHoldSeconds = 0;
   /** Rogatki: zachód/wschód toru × północ/południe jezdni. */
   private barriers: Konva.Group[] = [];
   private barriersDown = false;
@@ -839,7 +841,14 @@ export class SimRuntime {
       approachingRoad &&
       trainYNow > stopBeforeRoad - 30 &&
       this.crossingTrapped();
-    if (!holdTrain) {
+    if (holdTrain) {
+      this.trainHoldSeconds += dt * this.speed;
+    } else {
+      this.trainHoldSeconds = 0;
+    }
+    // Awaryjne przełamanie deadlocka: jeśli pociąg stoi > 5s z powodu blokady,
+    // pojazdy na torach otrzymują bezwzględną ewakuację, a po 8s pociąg wznawia bieg.
+    if (!holdTrain || this.trainHoldSeconds > 8) {
       this.trainT += dt * 0.09 * this.speed;
       if (this.trainT > 1.25) this.trainT = -0.45;
     }
@@ -949,36 +958,54 @@ export class SimRuntime {
         20,
         lookPose.angle - Math.PI / 2,
       );
+      const fx = Math.cos(nowPose.angle);
       const inWeTrackNow =
         Math.abs(nowPose.y - L.cy) < 22.5 &&
         Math.hypot(nowPose.x - L.cx, nowPose.y - L.cy) < L.ringOuter + 20;
       const inNsTrackNow =
         Math.abs(nowPose.x - L.cx) < 22.5 &&
         Math.hypot(nowPose.x - L.cx, nowPose.y - L.cy) < L.ringOuter + 20;
-      const wouldHitTram =
-        tramBlocking &&
-        !inWeTrackNow &&
-        !inNsTrackNow &&
-        tramBoxes.some((tb) => {
-          const cx = tb.box.x + tb.box.w / 2;
-          const cy = tb.box.y + tb.box.h / 2;
-          if (Math.hypot(nowPose.x - cx, nowPose.y - cy) < 38) return true;
-          if (Math.hypot(lookPose.x - cx, lookPose.y - cy) < 42) return true;
-          return aabbOverlap(carBox, tb.box) || aabbOverlap(nowBox, tb.box);
-        });
-      const trainHit = this.trainAabb();
-      const wouldHitTrain =
-        !!trainHit &&
-        (aabbOverlap(nowBox, trainHit.box) ||
-          aabbOverlap(carBox, trainHit.box) ||
-          Math.hypot(nowPose.x - RAIL_X, nowPose.y - this.trainY()) < 48);
+      const carOnArm =
+        Math.hypot(nowPose.x - L.cx, nowPose.y - L.cy) > L.ringOuter - 15;
+      const parallelWeArm = carOnArm && Math.abs(nowPose.y - L.cy) > 18;
+      const parallelNsArm = carOnArm && Math.abs(nowPose.x - L.cx) > 18;
+
       const betweenRail =
         Math.abs(nowPose.y - L.cy) < L.arms[0].halfWidth + 18 &&
         nowPose.x > RAIL_X - RAIL_STOP - 36 &&
         nowPose.x < RAIL_X + RAIL_STOP + 36;
-      // Na przejeździe — jedź dalej (ewakuacja); rogatki otworzy crossingOccupied
+      // Pojazd ewakuujący się z przejazdu za rogatki wyjazdowe
+      const evacuatingRail =
+        Math.abs(nowPose.y - L.cy) < L.arms[0].halfWidth + 18 &&
+        ((fx < -0.2 && nowPose.x < RAIL_X + RAIL_STOP + 15) ||
+          (fx > 0.2 && nowPose.x > RAIL_X - RAIL_STOP - 15));
+
+      const wouldHitTram =
+        tramBlocking &&
+        !inWeTrackNow &&
+        !inNsTrackNow &&
+        !evacuatingRail &&
+        tramBoxes.some((tb) => {
+          // Na ramieniu z osobnym pasem nie ma kolizji z tramem jadącym w osi jezdni
+          if (parallelWeArm && (tb.id === "tram-EW" || tb.id === "tram-WE"))
+            return false;
+          if (parallelNsArm && (tb.id === "tram-NS" || tb.id === "tram-SN"))
+            return false;
+          return aabbOverlap(carBox, tb.box) || aabbOverlap(nowBox, tb.box);
+        });
+      const trainHit = this.trainAabb();
+      const wouldHitTrain =
+        !betweenRail &&
+        !evacuatingRail &&
+        !!trainHit &&
+        (aabbOverlap(nowBox, trainHit.box) ||
+          aabbOverlap(carBox, trainHit.box) ||
+          Math.hypot(nowPose.x - RAIL_X, nowPose.y - this.trainY()) < 48);
+
+      // Na przejeździe lub podczas ewakuacji — jedź dalej; rogatki nie blokują wyjazdu
       const wouldHitBarrier =
         !betweenRail &&
+        !evacuatingRail &&
         this.barrierAabbs().some(
           (b) =>
             aabbOverlap(nowBox, b.box) ||
@@ -1026,6 +1053,7 @@ export class SimRuntime {
         }
       }
       const railBlock = this.railBlocksVehicle(v);
+      const railYellowBox = this.railCrossingBlockedAhead(v);
       // Za linią stop → już na wlocie/pierścieniu: czerwone wlotu nie obowiązuje
       const pastStop = v.progress > stopAt + 0.02;
       const onRing = pastStop && v.progress < 0.78;
@@ -1114,6 +1142,7 @@ export class SimRuntime {
         wouldHitPed ||
         tramCorridor ||
         railBlock ||
+        railYellowBox ||
         pedBlock ||
         wouldHitCar;
 
@@ -1263,19 +1292,79 @@ export class SimRuntime {
     const westStop = RAIL_X - RAIL_STOP;
     const eastStop = RAIL_X + RAIL_STOP;
     const fx = Math.cos(now.angle);
-    // Już między belkami — nie blokuj (ewakuacja)
-    if (now.x > westStop - 8 && now.x < eastStop + 8) return false;
+    // Już między belkami lub ewakuacja poza strefę zagrożenia — nie blokuj!
+    if (now.x > westStop - 10 && now.x < eastStop + 10) return false;
+    if (fx < -0.2 && now.x < eastStop + 10) return false;
+    if (fx > 0.2 && now.x > westStop - 10) return false;
     // →E: stój przed zachodnią belką (większy luz pod AABB)
-    if (fx > 0.2 && now.x <= westStop - 20 && now.x >= westStop - 70)
+    if (fx > 0.2 && now.x <= westStop - 20 && now.x >= westStop - 75)
       return true;
     // →W: stój przed wschodnią belką
-    if (fx < -0.2 && now.x >= eastStop + 20 && now.x <= eastStop + 70)
+    if (fx < -0.2 && now.x >= eastStop + 20 && now.x <= eastStop + 75)
       return true;
+    return false;
+  }
+
+  /**
+   * Zasada "żółtego pola" (anti-gridlock) na przejeździe kolejowym:
+   * Zakaz wjazdu na przejazd, jeżeli za przejazdem w tym samym pasie nie ma wolnego miejsca.
+   */
+  private railCrossingBlockedAhead(v: VehicleActor): boolean {
+    const L = this.layout;
+    const hw = L.arms[0].halfWidth;
+    const now = v.path.sample(Math.min(1, v.progress));
+    if (Math.abs(now.y - L.cy) > hw + 16) return false;
+    const westStop = RAIL_X - RAIL_STOP;
+    const eastStop = RAIL_X + RAIL_STOP;
+    const fx = Math.cos(now.angle);
+    // Jeśli pojazd już wjechał na przejazd — ewakuuj, nie zatrzymuj go na torach!
+    if (now.x > westStop - 12 && now.x < eastStop + 12) return false;
+
+    // →W (zjazd na zachód): pojazd jest przed wschodnią linią stop i planuje wjechać
+    if (fx < -0.2 && now.x >= eastStop - 5 && now.x <= eastStop + 75) {
+      const exitBlocked = this.vehicles.some((o) => {
+        if (o.id === v.id) return false;
+        const os = o.path.sample(Math.min(1, o.progress));
+        const ofy = Math.cos(os.angle);
+        return (
+          ofy < -0.2 &&
+          Math.abs(os.y - now.y) < 14 && // ten sam pas ruchu
+          os.x <= westStop + 20 &&
+          os.x >= westStop - 75
+        );
+      });
+      if (exitBlocked) return true;
+    }
+
+    // →E (wjazd od zachodu): pojazd jest przed zachodnią linią stop i planuje wjechać
+    if (fx > 0.2 && now.x <= westStop + 5 && now.x >= westStop - 75) {
+      const exitBlocked = this.vehicles.some((o) => {
+        if (o.id === v.id) return false;
+        const os = o.path.sample(Math.min(1, o.progress));
+        const ofy = Math.cos(os.angle);
+        return (
+          ofy > 0.2 &&
+          Math.abs(os.y - now.y) < 14 && // ten sam pas ruchu
+          os.x >= eastStop - 20 &&
+          os.x <= eastStop + 75
+        );
+      });
+      if (exitBlocked) return true;
+    }
+
     return false;
   }
 
   private clampRailGates(v: VehicleActor, next: number): number {
     if (!this.railThreat()) return next;
+    const now = v.path.sample(Math.min(1, v.progress));
+    const westStop = RAIL_X - RAIL_STOP;
+    const eastStop = RAIL_X + RAIL_STOP;
+    const fx = Math.cos(now.angle);
+    // Ewakuacja: jeśli pojazd już minął linię wjazdową — nie zaciskaj rogatek, pozwól zjechać!
+    if (fx < -0.2 && now.x < eastStop + 10) return next;
+    if (fx > 0.2 && now.x > westStop - 10) return next;
+
     const clampAt = (gate: number | null) => {
       if (gate == null) return next;
       if (v.progress <= gate + 0.012 && next > gate) return gate;
