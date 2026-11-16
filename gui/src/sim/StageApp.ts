@@ -53,7 +53,10 @@ export class StageApp {
       const rect = container.getBoundingClientRect();
       if (rect.width < 40 || rect.height < 40) return;
       // Stage = cały panel; layout contain + wyśrodkowany (bleed ramion sięga krawędzi).
-      const scale = Math.min(rect.width / this.layout.width, rect.height / this.layout.height);
+      const scale = Math.min(
+        rect.width / this.layout.width,
+        rect.height / this.layout.height,
+      );
       this.stage.width(rect.width);
       this.stage.height(rect.height);
       this.stage.scale({ x: scale, y: scale });
@@ -94,7 +97,7 @@ export class StageApp {
         y: -BLEED,
         width: L.width + BLEED * 2,
         height: L.height + BLEED * 2,
-        fill: "#4caf50",
+        fill: "#131b15",
         listening: false,
       }),
     );
@@ -150,8 +153,15 @@ export class StageApp {
           innerRadius: 0,
           outerRadius: pad,
           angle: 90,
-          rotation: qx < 0 && qy < 0 ? 180 : qx > 0 && qy < 0 ? 270 : qx < 0 && qy > 0 ? 90 : 0,
-          fill: "#4caf50",
+          rotation:
+            qx < 0 && qy < 0
+              ? 180
+              : qx > 0 && qy < 0
+                ? 270
+                : qx < 0 && qy > 0
+                  ? 90
+                  : 0,
+          fill: "#131b15",
           listening: false,
         }),
       );
@@ -162,9 +172,9 @@ export class StageApp {
         x: cx,
         y: cy,
         radius: L.islandR,
-        fill: "#43a047",
-        stroke: "#f5f5f5",
-        strokeWidth: 3,
+        fill: "#1a271f",
+        stroke: "#2e4334",
+        strokeWidth: 2,
       }),
     );
     // Wyspy rozdzielające wlot/wylot — dłuższe, żeby rondo wyglądało na podzielone (jak schemat)
@@ -222,8 +232,8 @@ export class StageApp {
         new Konva.Line({
           points: pts,
           closed: true,
-          fill: "#43a047",
-          stroke: "#f5f5f5",
+          fill: "#1a271f",
+          stroke: "#2e4334",
           strokeWidth: 1.5,
         }),
       );
@@ -293,7 +303,14 @@ export class StageApp {
             }),
           );
         });
-      } else if (t.kind === "arc" && t.cx != null && t.cy != null && t.r != null && t.a0 != null && t.a1 != null) {
+      } else if (
+        t.kind === "arc" &&
+        t.cx != null &&
+        t.cy != null &&
+        t.r != null &&
+        t.a0 != null &&
+        t.a1 != null
+      ) {
         const pts: number[] = [];
         const steps = 24;
         for (let i = 0; i <= steps; i++) {

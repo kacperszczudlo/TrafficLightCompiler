@@ -1,164 +1,179 @@
-# TrafficLightCompiler — Kompilator Języka Sygnalizacji Świetlnej
+# TrafficLightCompiler: kompilator języka sygnalizacji świetlnej
 
-Dedykowany język dziedzinowy (DSL) oraz deterministyczny kompilator weryfikujący i generujący kod sterowników sygnalizacji świetlnej dla węzłów drogowych, tramwajowych i kolejowych.
+Język dziedzinowy (DSL) oraz kompilator weryfikujący i generujący kod sterowników sygnalizacji świetlnej dla skrzyżowań, torowisk tramwajowych i przejazdów kolejowych.
 
----
+## 1. Cel projektu
 
-## 1. Wizja i Cel Projektu
+Ręczne pisanie programów sterowników ruchu w językach niskopoziomowych (C, drabinki PLC) bywa podatne na pomyłki, na przykład jednoczesne zielone światło dla relacji kolizyjnych. W tym projekcie węzeł opisuje się deklaratywnie w prostym języku tekstowym. Kompilator sprawdza brak konfliktów w zdefiniowanym cyklu i generuje tabelę przejść automatu Moore'a do wgrania na sterownik lub do symulatora.
 
-* **Problem:** Sterowniki ruchu drogowego i kolejowego są tradycyjnie programowane w niskopoziomowych językach (C, drabinki PLC), co rodzi ryzyko krytycznych błędów ludzkich (jednoczesne zielone światła, kolizje z pieszymi lub tramwajem).
-* **Cel:** Zastąpienie podatnego na błędy ręcznego kodowania deklaratywnym, formalnym językiem DSL.
-* **Rozwiązanie:** Kompilator w czasie kompilacji wykonuje **statyczny dowód bezkolizyjności** oraz generuje gotową, zweryfikowaną tabelę stanów automatu Moore'a do wgrania na fizyczny sterownik lub do symulatora.
+## 2. Zakres języka
 
----
+Język opisuje elementy węzła komunikacyjnego:
+1. Sygnalizatory:
+   * `samochody` / `pojazdy`: sygnalizacja 3-komorowa (czerwone, żółte, zielone).
+   * `piesi`: sygnalizacja 2-komorowa (czerwone, zielone).
+   * `tramwaje`: sygnalizacja torowa STK (stój, pion, kropka).
+   * `kolej`: sygnalizatory przejazdowe i rogatki kolejowe (otwarty, ostrzeżenie, zamknięty).
+   * `rowery`: sygnalizacja przejazdów rowerowych.
+2. Macierz kolizji: relacje wykluczających się kierunków (`A <-> B`).
+3. Harmonogram (cykl): kolejne kroki czasowe z określonym czasem trwania (sekundy, milisekundy, minuty) i stanami wyjść.
 
-## 2. Co Opisuje Język (Domena)
+## 3. Struktura programu
 
-Język modeluje pełną strukturę węzła komunikacyjnego:
-1. **Topologię i sygnalizatory:**
-   * `samochody` / `pojazdy` — sygnalizacja 3-komorowa (czerwone, żółte, zielone).
-   * `piesi` — sygnalizacja 2-komorowa (czerwone, zielone).
-   * `tramwaje` — sygnalizacja torowa STK (stój / pion / kropka).
-   * `kolej` — sygnalizatory przejazdowe i rogatki kolejowe (otwarty / ostrzeżenie / zamknięty).
-   * `rowery` — sygnalizacja przejazdów rowerowych.
-2. **Macierz kolizji:** Graf wzajemnych wykluczeń relacji ruchowych (`A <-> B`).
-3. **Harmonogram czasowy (Cykl):** Dyskretne kroki czasowe z precyzyjnym czasem trwania (sekundy, milisekundy, minuty) i stanami wyjść.
+Plik źródłowy ma rozszerzenie `.traffic` i zawiera trzy sekcje:
+* `kierunki { ... }`: identyfikatory i typy sygnalizatorów.
+* `kolizje { ... }`: pary kierunków o przecinających się torach jazdy.
+* `cykl { ... }`: sekwencja kroków czasowych `krok(czas: ...) { ... }`.
 
----
+### Przykładowy program (`rondo_autorskie.traffic`)
 
-## 3. Co Zapisuje Użytkownik
-
-Użytkownik tworzy plik tekstowy z rozszerzeniem `.traffic`. Składa się on z 3 głównych bloków:
-* `kierunki { ... }` — definicja identyfikatorów i typów sygnalizatorów.
-* `kolizje { ... }` — lista par kierunków, których tory jazdy przecinają się.
-* `cykl { ... }` — sekwencja kroków (`krok(czas: ...) { ... }`) z przypisaniem stanów.
-
-### Przykładowy program (`skrzyzowanie_zintegrowane.traffic`):
 ```text
-skrzyzowanie "Wezel_Glowny" {
+skrzyzowanie "Rondo_Autorskie" {
     kierunki {
-        Pojazdy_NS: samochody;
-        Pojazdy_WE: samochody;
-        Pieszy_NS: piesi;
-        Tramwaj_T1: tramwaje;
-        Przejazd_PKP: kolej;
+        Wlot_Zachod: pojazdy;
+        Wlot_Wschod: pojazdy;
+        Wlot_Poludnie: pojazdy;
+        Wlot_Polnoc: pojazdy;
+        Tramwaj_Linia_WE: tramwaje;
+        Tramwaj_Linia_NS: tramwaje;
+        Piesi_Przejscia: piesi;
     }
 
     kolizje {
-        Pojazdy_NS <-> Pojazdy_WE;
-        Pojazdy_WE <-> Pieszy_NS;
-        Pojazdy_WE <-> Tramwaj_T1;
-        Pojazdy_NS <-> Przejazd_PKP;
+        Wlot_Zachod <-> Wlot_Poludnie;
+        Wlot_Zachod <-> Wlot_Polnoc;
+        Wlot_Wschod <-> Wlot_Poludnie;
+        Wlot_Wschod <-> Wlot_Polnoc;
+
+        Tramwaj_Linia_WE <-> Tramwaj_Linia_NS;
+        Tramwaj_Linia_WE <-> Wlot_Poludnie;
+        Tramwaj_Linia_WE <-> Wlot_Polnoc;
+
+        Tramwaj_Linia_NS <-> Wlot_Zachod;
+        Tramwaj_Linia_NS <-> Wlot_Wschod;
+
+        Piesi_Przejscia <-> Wlot_Zachod;
+        Piesi_Przejscia <-> Wlot_Wschod;
+        Piesi_Przejscia <-> Wlot_Poludnie;
+        Piesi_Przejscia <-> Wlot_Polnoc;
     }
 
     cykl {
-        // Krok 1: Faza A - Ruch glowny NS i pieszy NS
+        // Krok 1: Otwarcie osi WE (samochody i tramwaj WE)
         krok(czas: 25s) {
-            Pojazdy_NS: ZIELONE;
-            Pojazdy_WE: CZERWONE;
-            Pieszy_NS: ZIELONE;
-            Tramwaj_T1: TRAM_STOJ;
-            Przejazd_PKP: PRZEJAZD_OTWARTY;
+            Wlot_Zachod: ZIELONE;
+            Wlot_Wschod: ZIELONE;
+            Wlot_Poludnie: CZERWONE;
+            Wlot_Polnoc: CZERWONE;
+            Tramwaj_Linia_WE: TRAM_JAZDA;
+            Tramwaj_Linia_NS: TRAM_STOJ;
+            Piesi_Przejscia: CZERWONE;
         }
-        // Krok 2: Ostrzezenie dla kierunku NS
+        // Krok 2: Żółte światło dla osi WE
         krok(czas: 3s) {
-            Pojazdy_NS: ZOLTE;
-            Pojazdy_WE: CZERWONE;
-            Pieszy_NS: CZERWONE;
-            Tramwaj_T1: TRAM_STOJ;
-            Przejazd_PKP: PRZEJAZD_OTWARTY;
+            Wlot_Zachod: ZOLTE;
+            Wlot_Wschod: ZOLTE;
+            Wlot_Poludnie: CZERWONE;
+            Wlot_Polnoc: CZERWONE;
+            Tramwaj_Linia_WE: TRAM_UWAGA;
+            Tramwaj_Linia_NS: TRAM_STOJ;
+            Piesi_Przejscia: CZERWONE;
         }
-        // Krok 3: Przygotowanie kierunku WE
+        // Krok 3: Czerwone z żółtym dla osi NS
         krok(czas: 2s) {
-            Pojazdy_NS: CZERWONE;
-            Pojazdy_WE: CZERWONE_ZOLTE;
-            Pieszy_NS: CZERWONE;
-            Tramwaj_T1: TRAM_STOJ;
-            Przejazd_PKP: PRZEJAZD_OTWARTY;
+            Wlot_Zachod: CZERWONE;
+            Wlot_Wschod: CZERWONE;
+            Wlot_Poludnie: CZERWONE_ZOLTE;
+            Wlot_Polnoc: CZERWONE_ZOLTE;
+            Tramwaj_Linia_WE: TRAM_STOJ;
+            Tramwaj_Linia_NS: TRAM_STOJ;
+            Piesi_Przejscia: CZERWONE;
         }
-        // Krok 4: Faza B - Ruch poprzeczny WE
-        krok(czas: 20s) {
-            Pojazdy_NS: CZERWONE;
-            Pojazdy_WE: ZIELONE;
-            Pieszy_NS: CZERWONE;
-            Tramwaj_T1: TRAM_STOJ;
-            Przejazd_PKP: PRZEJAZD_OTWARTY;
+        // Krok 4: Otwarcie osi NS (samochody i tramwaj NS)
+        krok(czas: 22s) {
+            Wlot_Zachod: CZERWONE;
+            Wlot_Wschod: CZERWONE;
+            Wlot_Poludnie: ZIELONE;
+            Wlot_Polnoc: ZIELONE;
+            Tramwaj_Linia_WE: TRAM_STOJ;
+            Tramwaj_Linia_NS: TRAM_JAZDA;
+            Piesi_Przejscia: CZERWONE;
         }
-        // Krok 5: Ostrzezenie dla kierunku WE
+        // Krok 5: Żółte światło dla osi NS
         krok(czas: 3s) {
-            Pojazdy_NS: CZERWONE;
-            Pojazdy_WE: ZOLTE;
-            Pieszy_NS: CZERWONE;
-            Tramwaj_T1: TRAM_STOJ;
-            Przejazd_PKP: PRZEJAZD_OTWARTY;
+            Wlot_Zachod: CZERWONE;
+            Wlot_Wschod: CZERWONE;
+            Wlot_Poludnie: ZOLTE;
+            Wlot_Polnoc: ZOLTE;
+            Tramwaj_Linia_WE: TRAM_STOJ;
+            Tramwaj_Linia_NS: TRAM_UWAGA;
+            Piesi_Przejscia: CZERWONE;
         }
-        // Krok 6: Faza C - Wydzielona faza tramwajowa
+        // Krok 6: Faza piesza
         krok(czas: 15s) {
-            Pojazdy_NS: CZERWONE;
-            Pojazdy_WE: CZERWONE;
-            Pieszy_NS: CZERWONE;
-            Tramwaj_T1: TRAM_JAZDA;
-            Przejazd_PKP: PRZEJAZD_OTWARTY;
+            Wlot_Zachod: CZERWONE;
+            Wlot_Wschod: CZERWONE;
+            Wlot_Poludnie: CZERWONE;
+            Wlot_Polnoc: CZERWONE;
+            Tramwaj_Linia_WE: TRAM_STOJ;
+            Tramwaj_Linia_NS: TRAM_STOJ;
+            Piesi_Przejscia: ZIELONE;
         }
-        // Krok 7: Ostrzezenie dla tramwaju
+        // Krok 7: Przygotowanie do powrotu do kroku 1
         krok(czas: 3s) {
-            Pojazdy_NS: CZERWONE;
-            Pojazdy_WE: CZERWONE;
-            Pieszy_NS: CZERWONE;
-            Tramwaj_T1: TRAM_UWAGA;
-            Przejazd_PKP: PRZEJAZD_OTWARTY;
-        }
-        // Krok 8: Przygotowanie powrotu do ruchu NS
-        krok(czas: 2s) {
-            Pojazdy_NS: CZERWONE_ZOLTE;
-            Pojazdy_WE: CZERWONE;
-            Pieszy_NS: CZERWONE;
-            Tramwaj_T1: TRAM_STOJ;
-            Przejazd_PKP: PRZEJAZD_OTWARTY;
+            Wlot_Zachod: CZERWONE_ZOLTE;
+            Wlot_Wschod: CZERWONE_ZOLTE;
+            Wlot_Poludnie: CZERWONE;
+            Wlot_Polnoc: CZERWONE;
+            Tramwaj_Linia_WE: TRAM_STOJ;
+            Tramwaj_Linia_NS: TRAM_STOJ;
+            Piesi_Przejscia: CZERWONE;
         }
     }
 }
 ```
 
----
+## 4. Dane wyjściowe
 
-## 4. Co Otrzymujemy na Wyjściu (Output)
+Kompilator tworzy trzy rodzaje wyników:
 
-Kompilator generuje trzy poziomy wyjścia:
+### Status walidacji
+* Kod wyjścia `0` (`VALID: YES`): program jest poprawny składniowo, typowo i bezkolizyjny w każdym kroku.
+* Kod wyjścia `1` (`VALID: NO`): kompilacja przerwana z informacją o numerze linii, kolumnie i przyczynie błędu (np. `CollisionConflictException`, `InvalidPhaseTransitionError`).
 
-### Poziom 1: Werdykt Poprawności (Status Walidacji)
-* `VALID: YES` (kod wyjścia `0`): Program jest poprawny składniowo, typowo i w 100% bezpieczny kolizyjnie.
-* `VALID: NO` (kod wyjścia `1`): Program odrzucony z precyzyjnym wskazaniem numeru linii, kolumny i reguły (np. `CollisionConflictException`, `InvalidPhaseTransitionError`).
-
-### Poziom 2: Wykonywalny Kod Sterownika (Target Code / Python)
-Kompilator generuje samodzielny program w języku Python (`sterownik.py`) z klasą `TrafficLightController`, precyzyjną pętlą czasu rzeczywistego (`time.monotonic()`) oraz kolorowym podglądem stanów w konsoli:
+### Kod sterownika Python
+Plik `sterownik.py` z klasą `TrafficLightController`, pętlą czasu rzeczywistego opartą na `time.monotonic()` i kolorowym wypisywaniem stanów w terminalu:
 ```powershell
-python compiler.py examples/skrzyzowanie_zintegrowane.traffic -o sterownik.py
+python compiler.py examples/rondo_autorskie.traffic -o sterownik.py
 python sterownik.py --speed 2.0
 ```
 
-### Poziom 3: Tabela Przejść Automatu Moore'a (IR / JSON)
-Deterministyczny model automatu skończonego (IR) gotowy do wgrania na mikrokontroler lub do symulatora:
+### Tabela stanów automatu Moore'a (IR JSON)
+Reprezentacja pośrednia automatu skończonego gotowa do użycia w symulatorze lub sterowniku sprzętowym:
 ```json
 {
-  "name": "Wezel_Glowny",
+  "name": "Rondo_Autorskie",
   "directions": {
-    "Pojazdy_NS": "vehicles_3color",
-    "Pojazdy_WE": "vehicles_3color",
-    "Pieszy_NS": "pedestrians_2color",
-    "Tramwaj_T1": "tram_stk",
-    "Przejazd_PKP": "railway_crossing"
+    "Wlot_Zachod": "vehicles_3color",
+    "Wlot_Wschod": "vehicles_3color",
+    "Wlot_Poludnie": "vehicles_3color",
+    "Wlot_Polnoc": "vehicles_3color",
+    "Tramwaj_Linia_WE": "tram_stk",
+    "Tramwaj_Linia_NS": "tram_stk",
+    "Piesi_Przejscia": "pedestrians_2color"
   },
   "states": [
     {
       "id": 0,
       "duration_ms": 25000,
       "outputs": {
-        "Pojazdy_NS": "GREEN",
-        "Pojazdy_WE": "RED",
-        "Pieszy_NS": "GREEN",
-        "Tramwaj_T1": "TRAM_STOP",
-        "Przejazd_PKP": "CROSSING_OPEN"
+        "Wlot_Zachod": "GREEN",
+        "Wlot_Wschod": "GREEN",
+        "Wlot_Poludnie": "RED",
+        "Wlot_Polnoc": "RED",
+        "Tramwaj_Linia_WE": "TRAM_GO",
+        "Tramwaj_Linia_NS": "TRAM_STOP",
+        "Piesi_Przejscia": "RED"
       },
       "next_state": 1
     }
@@ -166,41 +181,19 @@ Deterministyczny model automatu skończonego (IR) gotowy do wgrania na mikrokont
 }
 ```
 
----
+## 5. Etapy kompilacji
 
-## 5. Spis Mikroczynności Kompilatora (Pipeline)
+Przetwarzanie kodu przebiega w pięciu krokach:
 
-Przetwarzanie kodu odbywa się w 5 deterministycznych fazach:
+1. Skanowanie leksykalne (Lexer): podział tekstu na tokeny (słowa kluczowe, czasy, nazwy).
+2. Rozbiór składniowy (Parser): budowa drzewa parsowania na podstawie gramatyki ANTLR4.
+3. Konstrukcja AST (AstVisitor): przekształcenie drzewa w węzły obiektowe (`IntersectionNode`, `StepNode`).
+4. Weryfikacja semantyczna: sprawdzenie deklaracji kierunków, poprawności stanów świateł, minimalnych czasów żółtych i braku kolizji w cyklu.
+5. Generacja kodu: zapis modelu automatu do formatu JSON oraz wygenerowanie skryptu `sterownik.py`.
 
-```
-[ Kod źródłowy .traffic ]
-          │
-          ▼
-1. Skanowanie leksykalne (Lexer)       --> Strumień tokenów (słowa kluczowe, czasy, identyfikatory)
-          │
-          ▼
-2. Rozbiór składniowy (Parser)         --> Drzewo parsowania (ParseTree wg ANTLR4)
-          │
-          ▼
-3. Konstrukcja AST (AstVisitor)        --> Zunifikowane węzły obiektowe (IntersectionNode, StepNode)
-          │
-          ▼
-4. Weryfikacja semantyczna (Validator) --> Statyczny dowód bezpieczeństwa:
-                                           * Poprawność deklaracji kierunków
-                                           * Zgodność typów świateł z sygnalizatorami
-                                           * Weryfikacja macierzy kolizji dla każdego kroku
-                                           * Weryfikacja sekwencji fazowych i czasów ewakuacji
-          │
-          ▼
-5. Generacja kodu docelowego           --> Samodzielny sterownik Python (sterownik.py)
-                                           oraz model automatu Moore'a (IR JSON)
-```
+## 6. Interfejs graficzny i symulator 2D
 
----
-
-## 5a. Interaktywne GUI i Symulator 2D
-
-UI to Vite + TypeScript + Konva (`gui/src`). Serwer Pythona (`run_gui.py`) serwuje wyłącznie zbudowany `gui/dist` i API kompilatora:
+Aplikacja webowa została przygotowana w oparciu o Vite, TypeScript i Konva (`gui/src`). Lokalny serwer Pythona (`run_gui.py`) serwuje zbudowany pakiet produkcyjny oraz API kompilatora:
 
 ```powershell
 cd gui
@@ -210,27 +203,19 @@ cd ..
 python run_gui.py
 ```
 
-Dev frontendu: `cd gui && npm run dev` (API nadal przez `python run_gui.py`).
+W trybie deweloperskim frontendu: `cd gui && npm run dev` (kompilator nadal odpowiada z poziomu `python run_gui.py`).
 
-Aplikacja (`http://localhost:8000`) ma edytor z szablonami, logi 5 etapów kompilacji, symulator 2D (Konva) oraz alarm przy kolizji w cyklu.
+Funkcje interfejsu (`http://localhost:8000`):
+* Edytor kodu z wcięciami Tab, wyborem programu i przywracaniem domyślnego przykładu.
+* Kompilacja z poziomu przycisku lub skrótu klawiszowego `F5`.
+* Podgląd kolejnych etapów działania kompilatora w oknie logów.
+* Symulator 2D z ruchem pojazdów, torowiskiem tramwajowym, rogatkami kolejowymi i przejściami dla pieszych.
+* Wskaźniki bieżącego stanu automatu, czasu trwania fazy i liczby ukończonych cykli.
+* Ostrzeżenie w postaci czerwonego baneru w przypadku wykrycia kolizji w kodzie.
+* Podgląd i pobieranie kodu sterownika `sterownik.py` oraz danych automatu w formacie JSON.
 
----
+## 7. Dokumentacja
 
-## 6. Co Jest Poprawne, a Co Nie (Przykłady)
-
-| Sytuacja | Werdykt | Przyczyna |
-| :--- | :---: | :--- |
-| Bezkolizyjne fazy zielone z zachowaniem czasów żółtych $\ge 2\text{s}$ | **TAK (YES)** | Zgodne z regułami ruchu i brakiem konfliktów w macierzy. |
-| Jednoczesne `ZIELONE` dla kierunków zadeklarowanych w `kolizje` | **NIE (NO)** | Błąd `CollisionConflictException`. Wykryto ryzyko zderzenia. |
-| Przejście `ZIELONE` $\to$ `CZERWONE` dla samochodów bez fazy `ZOLTE` | **NIE (NO)** | Błąd `InvalidPhaseTransitionError`. Wymagana faza ostrzegawcza. |
-| Przypisanie stanu `ZOLTE` dla sygnalizatora typu `piesi` | **NIE (NO)** | Błąd `InvalidLightStateForTypeException`. Piesi mają tylko czerwone/zielone. |
-| Faza `ZOLTE` o czasie krótszym niż $2\text{s}$ (np. $1\text{s}$) | **NIE (NO)** | Błąd `InvalidTimeDurationError`. Niedotrzymanie minimalnego czasu bezpieczeństwa. |
-| Pominięcie stanu któregoś kierunku w definicji kroku | **NIE (NO)** | Błąd `IncompleteStepDefinitionError`. Stan każdego sygnalizatora musi być jednoznaczny. |
-
----
-
-## 7. Nawigacja po Dokumentacji
-
-* [docs/specyfikacja_jezyka.md](docs/specyfikacja_jezyka.md) — Kompletna formalna gramatyka EBNF, tokeny, typy i reguły.
-* [docs/model_automatu.md](docs/model_automatu.md) — Formalny aparat matematyczny automatu Moore'a, macierz kolizji oraz specyfikacja wyjściowego JSON.
-* [INSTRUKCJA_OBSLUGI.md](INSTRUKCJA_OBSLUGI.md) — Instrukcja instalacji, uruchomienia kompilatora i regeneracji parsera.
+* [docs/specyfikacja_jezyka.md](docs/specyfikacja_jezyka.md): formalna gramatyka EBNF, tokeny i reguły semantyczne.
+* [docs/model_automatu.md](docs/model_automatu.md): definicja automatu Moore'a, macierz kolizji i specyfikacja JSON.
+* [INSTRUKCJA_OBSLUGI.md](INSTRUKCJA_OBSLUGI.md): instrukcja instalacji, uruchomienia i regeneracji parsera.

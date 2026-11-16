@@ -1,52 +1,42 @@
-# Instrukcja Obsługi i Uruchomienia Kompilatora
+# Instrukcja obsługi i uruchomienia kompilatora
 
-Kompilator języka TrafficLight DSL realizowany w ramach przedmiotu **Języki formalne i kompilatory 2**.
-
----
+Kompilator języka TrafficLight DSL realizowany w ramach przedmiotu Języki formalne i kompilatory 2.
 
 ## 1. Wymagania
 
-* Python 3.10 lub nowszy (dostępny w środowisku `.venv`)
-* Biblioteka `antlr4-python3-runtime` (zainstalowana w `.venv`)
-* Java 11+ / 21 — wymagana wyłącznie w przypadku edycji pliku gramatyki `.g4` i regeneracji parsera (w repozytorium znajduje się już gotowy `tools/antlr-4.13.2-complete.jar`)
+* Python 3.10 lub nowszy (dostępny w środowisku `.venv`).
+* Biblioteka `antlr4-python3-runtime` (zainstalowana w `.venv`).
+* Java 11+ lub 21: wymagana wyłącznie przy modyfikacji gramatyki `.g4` i regeneracji parsera (w katalogu `tools/` znajduje się archiwum `antlr-4.13.2-complete.jar`).
 
----
+## 2. Uruchomienie interfejsu graficznego i symulatora 2D
 
-## 2. Uruchomienie Interaktywnego GUI i Symulatora 2D
-
-Aplikacja webowa opiera się wyłącznie na standardowej bibliotece Pythona (`http.server`), co oznacza **brak konieczności instalowania jakichkolwiek pakietów GUI/pip**.
+Serwer aplikacji korzysta z biblioteki standardowej Pythona (`http.server`), więc nie wymaga instalowania dodatkowych pakietów z pip.
 
 Uruchomienie serwera:
 ```powershell
 python run_gui.py
 ```
-Aplikacja automatycznie otworzy przeglądarkę pod adresem:
-👉 **`http://localhost:8000`**
+Aplikacja otwiera przeglądarkę pod adresem:
+`http://localhost:8000`
 
-### Możliwości GUI:
-* **Edytor kodu źródłowego:** Podświetlanie składni, wybór gotowych przykładów z rozwijanej listy.
-* **Kompilacja w czasie rzeczywistym:** Klawisz `F5` lub przycisk *Kompiluj* uruchamia pełny pipeline kompilatora.
-* **Dziennik logów (5 mikroczynności):** Podgląd faz analizy leksykalnej, składniowej, budowy AST, dowodu bezkolizyjności oraz generacji kodu.
-* **Animowany symulator skrzyżowania 2D (Canvas):**
-  - Wizualizacja ruchu samochodów (Północ-Południe i Wschód-Zachód),
-  - Dynamiczne przejścia dla pieszych z sygnalizacją 2-kolorową,
-  - Torowisko tramwajowe z sygnalizacją torową STK,
-  - Przejazd kolejowy z animowanymi rogatkami opadającymi przy przejeździe pociągu,
-  - Wskaźnik stanu automatu Moore'a z odliczaniem czasu,
-  - **Dynamiczny czerwony alert kolizji:** w przypadku wczytania błędnego programu (np. `skrzyzowanie_kolizja.traffic`) symulator podświetla konflikt na czerwono.
-* **Eksport kodu sterownika:** Przycisk *Pobierz sterownik.py* pozwala natychmiast zapisać wygenerowany kod wynikowy.
+Możliwości interfejsu:
+* Edytor kodu źródłowego z obsługą wcięć Tab, wyborem programu z listy i przyciskiem przywracania oryginalnego kodu.
+* Kompilacja w czasie rzeczywistym klawiszem F5 lub przyciskiem w nagłówku.
+* Dziennik etapów kompilacji z podglądem analizy leksykalnej, składniowej, budowy AST, weryfikacji semantycznej i generacji kodu.
+* Symulator ronda 2D (Konva) z ruchem pojazdów, torowiskiem tramwajowym, rogatkami kolejowymi i przejściami dla pieszych.
+* Wskaźniki automatu Moore'a z odliczaniem czasu kroku i licznikiem cykli.
+* Czerwony baner ostrzegawczy w przypadku wykrycia kolizji lub błędu semantycznego w cyklu.
+* Kopiowanie i pobieranie wygenerowanego kodu `sterownik.py` oraz danych automatu w formacie JSON.
 
----
+## 3. Kompilacja z linii poleceń (CLI)
 
-## 3. Kompilacja i Generowanie Kodu z Linii Poleceń (CLI)
-
-### Kompilacja do kodu sterownika Python (Target Code Generation):
+Kompilacja do kodu sterownika Python:
 ```powershell
-python compiler.py examples/skrzyzowanie_zintegrowane.traffic -o sterownik.py
+python compiler.py examples/rondo_autorskie.traffic -o sterownik.py
 ```
-Wygenerowany plik `sterownik.py` jest w 100% samodzielnym programem realizującym automat Moore'a w czasie rzeczywistym.
+Plik `sterownik.py` realizuje automat Moore'a w czasie rzeczywistym.
 
-### Uruchomienie wygenerowanego sterownika:
+Uruchomienie wygenerowanego sterownika:
 ```powershell
 # Uruchomienie standardowe w czasie rzeczywistym
 python sterownik.py
@@ -58,51 +48,44 @@ python sterownik.py --speed 2.0 --cycles 3
 python sterownik.py --dry-run
 ```
 
-### Zapisanie reprezentacji pośredniej IR (DFA JSON):
+Zapisanie reprezentacji pośredniej IR (DFA JSON):
 ```powershell
-python compiler.py examples/skrzyzowanie_zintegrowane.traffic --dfa-json automat.json
+python compiler.py examples/rondo_autorskie.traffic --dfa-json automat.json
 ```
 
-### Test wykrywania kolizji (przykład błędny):
-```powershell
-python compiler.py examples/skrzyzowanie_kolizja.traffic
-```
-Kompilator natychmiast przerywa działanie z kodem wyjścia `1` i błędem:
-`CollisionConflictException: Krok 2 (linia 22): wykryto konflikt kolizyjny! Kierunki 'NS' i 'WE' mają jednocześnie zielone światło`.
+Weryfikacja wykrywania kolizji:
+Jeśli w programie dwa kolidujące kierunki otrzymają jednocześnie zezwolenie na ruch, kompilator zakończy działanie z kodem błędu 1 i komunikatem:
+`CollisionConflictException: Krok X (linia Y): wykryto konflikt kolizyjny! Kierunki 'A' i 'B' mają jednocześnie zielone światło`.
 
----
+## 4. Regeneracja leksera i parsera (ANTLR4)
 
-## 4. Regeneracja Leksera i Parsera (ANTLR4)
+W przypadku edycji pliku gramatyki `grammar/TrafficLight.g4` należy uruchomić skrypt generujący:
 
-W przypadku modyfikacji pliku gramatyki `grammar/TrafficLight.g4`, należy uruchomić skrypt generujący:
-
-**PowerShell:**
+PowerShell:
 ```powershell
 .\generate_parser.ps1
 ```
 
-**CMD:**
+CMD:
 ```cmd
 generate_parser.bat
 ```
 
----
+## 5. Układ katalogów projektu
 
-## 5. Układ Katalogów Projektu
-
-* `compiler.py` — główny program kompilatora CLI
-* `run_gui.py` — lokalny serwer GUI i symulatora (standardowy `http.server`)
-* `gui/` — UI Vite + TypeScript + Konva (`src/`, `index.html`; produkcja: `dist/` po `npm run build`)
-* `grammar/TrafficLight.g4` — formalna gramatyka ANTLR4
-* `src/`
-  * `ast_nodes.py` — struktury węzłów AST
-  * `ast_builder.py` — visitor przekształcający ParseTree w AST
-  * `semantic_validator.py` — statyczna weryfikacja kolizji, typów i czasów
-  * `dfa_generator.py` — generacja modelu automatu Moore'a (IR JSON)
-  * `code_generator.py` — generator kodu docelowego Python (`sterownik.py`)
-  * `generated/` — pliki leksera i parsera wygenerowane przez ANTLR
-* `docs/`
-  * `specyfikacja_jezyka.md` — formalna gramatyka EBNF, tokeny i reguły
-  * `model_automatu.md` — formalny model automatu i dowód bezkolizyjności
-* `examples/` — przykładowe pliki źródłowe (`.traffic`)
-* `tools/` — biblioteka `antlr-4.13.2-complete.jar`
+* `compiler.py`: główny program kompilatora CLI.
+* `run_gui.py`: lokalny serwer interfejsu webowego (Python `http.server`).
+* `gui/`: aplikacja webowa Vite, TypeScript i Konva (`src/`, `index.html`, produkcyjny `dist/`).
+* `grammar/TrafficLight.g4`: gramatyka ANTLR4.
+* `src/`:
+  * `ast_nodes.py`: struktury węzłów AST.
+  * `ast_builder.py`: visitor przekształcający ParseTree w AST.
+  * `semantic_validator.py`: sprawdzanie kolizji, typów i czasów.
+  * `dfa_generator.py`: generowanie modelu automatu Moore'a (IR JSON).
+  * `code_generator.py`: generator kodu sterownika Python (`sterownik.py`).
+  * `generated/`: kod leksera i parsera wygenerowany przez ANTLR.
+* `docs/`:
+  * `specyfikacja_jezyka.md`: gramatyka EBNF, tokeny i reguły.
+  * `model_automatu.md`: model automatu i dowód bezkolizyjności.
+* `examples/`: przykładowe pliki źródłowe (`.traffic`).
+* `tools/`: biblioteka `antlr-4.13.2-complete.jar`.

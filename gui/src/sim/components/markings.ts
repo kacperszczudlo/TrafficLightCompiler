@@ -1,8 +1,14 @@
 import Konva from "konva";
-import type { ArmSpec, Cardinal, RoundaboutLayout, StopSpec, ZebraSpec } from "../layouts/types";
+import type {
+  ArmSpec,
+  Cardinal,
+  RoundaboutLayout,
+  StopSpec,
+  ZebraSpec,
+} from "../layouts/types";
 
-const WHITE = "#f5f5f5";
-const ASPHALT = "#5a5a5a";
+const WHITE = "#e2e8f0";
+const ASPHALT = "#222735";
 
 function armAxis(dir: Cardinal, layout: RoundaboutLayout, dist: number) {
   const { cx, cy } = layout;
@@ -19,7 +25,11 @@ function armAxis(dir: Cardinal, layout: RoundaboutLayout, dist: number) {
 }
 
 /** Solid stop on inbound RHT half only. */
-export function buildStopLine(layout: RoundaboutLayout, stop: StopSpec, arm: ArmSpec): Konva.Line {
+export function buildStopLine(
+  layout: RoundaboutLayout,
+  stop: StopSpec,
+  arm: ArmSpec,
+): Konva.Line {
   const { cx, cy, ringOuter } = layout;
   const d = ringOuter + stop.out;
   const m = arm.medianHalf;
@@ -49,7 +59,11 @@ export function buildStopLine(layout: RoundaboutLayout, stop: StopSpec, arm: Arm
   });
 }
 
-export function buildYieldLine(layout: RoundaboutLayout, stop: StopSpec, arm: ArmSpec): Konva.Line {
+export function buildYieldLine(
+  layout: RoundaboutLayout,
+  stop: StopSpec,
+  arm: ArmSpec,
+): Konva.Line {
   const { cx, cy, ringOuter } = layout;
   const d = ringOuter + stop.yieldOut;
   const m = arm.medianHalf;
@@ -79,7 +93,11 @@ export function buildYieldLine(layout: RoundaboutLayout, stop: StopSpec, arm: Ar
   });
 }
 
-export function buildZebra(layout: RoundaboutLayout, z: ZebraSpec, arm: ArmSpec): Konva.Group {
+export function buildZebra(
+  layout: RoundaboutLayout,
+  z: ZebraSpec,
+  arm: ArmSpec,
+): Konva.Group {
   const g = new Konva.Group({ listening: false, name: `zebra-${z.dir}` });
   const { cx, cy, ringOuter } = layout;
   const dist = ringOuter + z.out;
@@ -127,7 +145,12 @@ export function buildLaneArrow(
   kind: ArmSpec["lanes"][0]["arrow"],
 ): Konva.Group {
   // Lokalnie +X = kierunek jazdy; −Y = lewo (Y w dół na canvasie)
-  const g = new Konva.Group({ x, y, rotation: (angle * 180) / Math.PI, listening: false });
+  const g = new Konva.Group({
+    x,
+    y,
+    rotation: (angle * 180) / Math.PI,
+    listening: false,
+  });
   const shaftOnly = kind === "straight" || kind === "left" || kind === "right";
   if (shaftOnly || kind === "straightLeft" || kind === "straightRight") {
     g.add(
@@ -186,16 +209,27 @@ export function buildLaneArrow(
   return g;
 }
 
-export function buildArmLaneDashes(layout: RoundaboutLayout, arm: ArmSpec): Konva.Group {
+export function buildArmLaneDashes(
+  layout: RoundaboutLayout,
+  arm: ArmSpec,
+): Konva.Group {
   const g = new Konva.Group({ listening: false });
   const { cx, cy, ringOuter } = layout;
   // Linie pasów przez CAŁĄ długość wlotu (od krawędzi canvasu do pierścienia)
   const inner = ringOuter + 2;
   const sepOffsets = new Set<number>();
-  const ins = arm.lanes.filter((l) => l.kind === "in").map((l) => l.offset).sort((a, b) => a - b);
-  const outs = arm.lanes.filter((l) => l.kind === "out").map((l) => l.offset).sort((a, b) => a - b);
-  for (let i = 1; i < ins.length; i++) sepOffsets.add((ins[i - 1] + ins[i]) / 2);
-  for (let i = 1; i < outs.length; i++) sepOffsets.add((outs[i - 1] + outs[i]) / 2);
+  const ins = arm.lanes
+    .filter((l) => l.kind === "in")
+    .map((l) => l.offset)
+    .sort((a, b) => a - b);
+  const outs = arm.lanes
+    .filter((l) => l.kind === "out")
+    .map((l) => l.offset)
+    .sort((a, b) => a - b);
+  for (let i = 1; i < ins.length; i++)
+    sepOffsets.add((ins[i - 1] + ins[i]) / 2);
+  for (let i = 1; i < outs.length; i++)
+    sepOffsets.add((outs[i - 1] + outs[i]) / 2);
 
   // Bleed poza layout — pasy ciągłe do krawędzi panelu (jak asfalt)
   const EDGE = 800;
@@ -228,7 +262,10 @@ export function buildArmLaneDashes(layout: RoundaboutLayout, arm: ArmSpec): Konv
   return g;
 }
 
-export function placeArmArrows(layout: RoundaboutLayout, arm: ArmSpec): Konva.Group {
+export function placeArmArrows(
+  layout: RoundaboutLayout,
+  arm: ArmSpec,
+): Konva.Group {
   const g = new Konva.Group({ listening: false });
   const stopOut = 52;
   // Dalej od stopu / zebry, żeby strzałki nie nachodziły na oznakowanie
@@ -252,7 +289,8 @@ export function placeArmArrows(layout: RoundaboutLayout, arm: ArmSpec): Konva.Gr
       const p = armAxis(arm.dir, layout, arrDist);
       let x = p.x;
       let y = p.y;
-      if (arm.dir === "north" || arm.dir === "south") x = layout.cx + lane.offset;
+      if (arm.dir === "north" || arm.dir === "south")
+        x = layout.cx + lane.offset;
       else y = layout.cy + lane.offset;
       g.add(buildLaneArrow(x, y, travelAngle[arm.dir], lane.arrow));
     });
@@ -312,9 +350,19 @@ export function buildSpiralExitGuides(layout: RoundaboutLayout): Konva.Group {
   // Cztery ćwiartki: spiralny zjazd CCW z zewnętrznego pasa na oś wylotu
   const exits: { a0: number; a1: number; r0: number; r1: number }[] = [
     { a0: -0.55, a1: 0.15, r0: outer, r1: outer + 36 }, // → E
-    { a0: Math.PI * 0.5 - 0.55, a1: Math.PI * 0.5 + 0.15, r0: outer, r1: outer + 36 }, // → S
+    {
+      a0: Math.PI * 0.5 - 0.55,
+      a1: Math.PI * 0.5 + 0.15,
+      r0: outer,
+      r1: outer + 36,
+    }, // → S
     { a0: Math.PI - 0.55, a1: Math.PI + 0.15, r0: outer, r1: outer + 36 }, // → W
-    { a0: -Math.PI * 0.5 - 0.55, a1: -Math.PI * 0.5 + 0.15, r0: outer, r1: outer + 36 }, // → N
+    {
+      a0: -Math.PI * 0.5 - 0.55,
+      a1: -Math.PI * 0.5 + 0.15,
+      r0: outer,
+      r1: outer + 36,
+    }, // → N
   ];
   exits.forEach(({ a0, a1, r0, r1 }) => {
     const pts: number[] = [];
@@ -345,7 +393,14 @@ export function buildSpiralExitGuides(layout: RoundaboutLayout): Konva.Group {
     const py = Math.sin(tang) * 7;
     g.add(
       new Konva.Line({
-        points: [tx - hx + px, ty - hy + py, tx, ty, tx - hx - px, ty - hy - py],
+        points: [
+          tx - hx + px,
+          ty - hy + py,
+          tx,
+          ty,
+          tx - hx - px,
+          ty - hy - py,
+        ],
         stroke: RED,
         strokeWidth: 3,
         lineJoin: "round",
