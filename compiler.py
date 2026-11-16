@@ -65,31 +65,35 @@ def compile_source_string(source_code: str) -> dict:
 
     log("[4/5] Weryfikacja semantyczna i dowód bezkolizyjności...")
     validator = SemanticValidator()
+    is_valid = True
+    sem_error_type = None
+    sem_error_msg = None
+
     try:
         validator.validate(ast)
         log("      Weryfikacja zakończona SUKCESEM (brak kolizji, poprawne fazy i czasy).")
     except SemanticError as e:
-        err_msg = f"{e.__class__.__name__}: {str(e)}"
+        is_valid = False
+        sem_error_type = e.__class__.__name__
+        sem_error_msg = str(e)
+        err_msg = f"{sem_error_type}: {sem_error_msg}"
         log(f"[!] BŁĄD SEMANTYCZNY: {err_msg}")
-        return {
-            "valid": False,
-            "error_type": e.__class__.__name__,
-            "error_message": str(e),
-            "logs": logs,
-            "dfa": None,
-            "target_code": None
-        }
+        log("      [!] Kompilator zablokował wygenerowanie kodu produkcyjnego.")
+        log("      [*] Wygenerowano model DFA automatu, aby umożliwić symulację zderzenia/usterki w GUI.")
 
-    log("[5/5] Generowanie modelu automatu Moore'a (IR) oraz kodu docelowego...")
+    log("[5/5] Generowanie modelu automatu Moore'a (IR)...")
     dfa_dict = DfaGenerator.generate(ast)
-    target_code = PythonCodeGenerator.generate_from_dfa(dfa_dict)
-    log(f"      Wygenerowano automat DFA z {len(dfa_dict.get('states', []))} stanami.")
-    log("      Wygenerowano autonomiczny sterownik Python.")
+    target_code = None
+
+    if is_valid:
+        target_code = PythonCodeGenerator.generate_from_dfa(dfa_dict)
+        log(f"      Wygenerowano automat DFA z {len(dfa_dict.get('states', []))} stanami.")
+        log("      Wygenerowano autonomiczny sterownik Python.")
 
     return {
-        "valid": True,
-        "error_type": None,
-        "error_message": None,
+        "valid": is_valid,
+        "error_type": sem_error_type,
+        "error_message": sem_error_msg,
         "logs": logs,
         "dfa": dfa_dict,
         "target_code": target_code

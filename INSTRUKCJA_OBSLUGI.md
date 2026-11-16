@@ -92,7 +92,7 @@ generate_parser.bat
 
 * `compiler.py` — główny program kompilatora CLI
 * `run_gui.py` — lokalny serwer GUI i symulatora (standardowy `http.server`)
-* `gui/` — pliki interfejsu webowego (`index.html`, `styles.css`, `app.js`)
+* `gui/` — UI Vite + TypeScript + Konva (`src/`, `index.html`; produkcja: `dist/` po `npm run build`)
 * `grammar/TrafficLight.g4` — formalna gramatyka ANTLR4
 * `src/`
   * `ast_nodes.py` — struktury węzłów AST

@@ -1,0 +1,107 @@
+// ============================================================================
+// RONDO AUTORSKIE — jedyny przykład demo (tramwaj + przejazd kolejowy).
+// ============================================================================
+
+skrzyzowanie "Rondo_Autorskie" {
+    kierunki {
+        Wlot_Zachod: pojazdy;
+        Wlot_Wschod: pojazdy;
+        Wlot_Poludnie: pojazdy;
+        Wlot_Polnoc: pojazdy;
+        Tramwaj_Linia_WE: tramwaje;
+        Tramwaj_Linia_NS: tramwaje;
+        Piesi_Przejscia: piesi;
+    }
+
+    kolizje {
+        Wlot_Zachod <-> Wlot_Poludnie;
+        Wlot_Zachod <-> Wlot_Polnoc;
+        Wlot_Wschod <-> Wlot_Poludnie;
+        Wlot_Wschod <-> Wlot_Polnoc;
+
+        Tramwaj_Linia_WE <-> Tramwaj_Linia_NS;
+
+        Tramwaj_Linia_WE <-> Wlot_Poludnie;
+        Tramwaj_Linia_WE <-> Wlot_Polnoc;
+
+        Tramwaj_Linia_NS <-> Wlot_Zachod;
+        Tramwaj_Linia_NS <-> Wlot_Wschod;
+
+        Piesi_Przejscia <-> Wlot_Zachod;
+        Piesi_Przejscia <-> Wlot_Wschod;
+        Piesi_Przejscia <-> Wlot_Poludnie;
+        Piesi_Przejscia <-> Wlot_Polnoc;
+    }
+
+    cykl {
+        krok(czas: 25s) {
+            Wlot_Zachod: ZIELONE;
+            Wlot_Wschod: ZIELONE;
+            Wlot_Poludnie: CZERWONE;
+            Wlot_Polnoc: CZERWONE;
+            Tramwaj_Linia_WE: TRAM_JAZDA;
+            Tramwaj_Linia_NS: TRAM_STOJ;
+            Piesi_Przejscia: CZERWONE;
+        }
+
+        krok(czas: 3s) {
+            Wlot_Zachod: ZOLTE;
+            Wlot_Wschod: ZOLTE;
+            Wlot_Poludnie: CZERWONE;
+            Wlot_Polnoc: CZERWONE;
+            Tramwaj_Linia_WE: TRAM_UWAGA;
+            Tramwaj_Linia_NS: TRAM_STOJ;
+            Piesi_Przejscia: CZERWONE;
+        }
+
+        krok(czas: 2s) {
+            Wlot_Zachod: CZERWONE;
+            Wlot_Wschod: CZERWONE;
+            Wlot_Poludnie: CZERWONE_ZOLTE;
+            Wlot_Polnoc: CZERWONE_ZOLTE;
+            Tramwaj_Linia_WE: TRAM_STOJ;
+            Tramwaj_Linia_NS: TRAM_STOJ;
+            Piesi_Przejscia: CZERWONE;
+        }
+
+        krok(czas: 22s) {
+            Wlot_Zachod: CZERWONE;
+            Wlot_Wschod: CZERWONE;
+            Wlot_Poludnie: ZIELONE;
+            Wlot_Polnoc: ZIELONE;
+            Tramwaj_Linia_WE: TRAM_STOJ;
+            Tramwaj_Linia_NS: TRAM_JAZDA;
+            Piesi_Przejscia: CZERWONE;
+        }
+
+        krok(czas: 3s) {
+            Wlot_Zachod: CZERWONE;
+            Wlot_Wschod: CZERWONE;
+            Wlot_Poludnie: ZOLTE;
+            Wlot_Polnoc: ZOLTE;
+            Tramwaj_Linia_WE: TRAM_STOJ;
+            Tramwaj_Linia_NS: TRAM_UWAGA;
+            Piesi_Przejscia: CZERWONE;
+        }
+
+        krok(czas: 15s) {
+            Wlot_Zachod: CZERWONE;
+            Wlot_Wschod: CZERWONE;
+            Wlot_Poludnie: CZERWONE;
+            Wlot_Polnoc: CZERWONE;
+            Tramwaj_Linia_WE: TRAM_STOJ;
+            Tramwaj_Linia_NS: TRAM_STOJ;
+            Piesi_Przejscia: ZIELONE;
+        }
+
+        krok(czas: 3s) {
+            Wlot_Zachod: CZERWONE_ZOLTE;
+            Wlot_Wschod: CZERWONE_ZOLTE;
+            Wlot_Poludnie: CZERWONE;
+            Wlot_Polnoc: CZERWONE;
+            Tramwaj_Linia_WE: TRAM_STOJ;
+            Tramwaj_Linia_NS: TRAM_STOJ;
+            Piesi_Przejscia: CZERWONE;
+        }
+    }
+}

@@ -11,7 +11,7 @@ import sys
 import json
 import socket
 import webbrowser
-from http.server import HTTPServer, SimpleHTTPRequestHandler
+from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler
 from urllib.parse import urlparse
 
 # Upewniamy się, że bieżący katalog jest na ścieżce importów
@@ -21,11 +21,19 @@ if BASE_DIR not in sys.path:
 
 from compiler import compile_source_string
 
+def resolve_gui_dir():
+    """Serve only the Vite production build (gui/dist)."""
+    dist_dir = os.path.join(BASE_DIR, "gui", "dist")
+    if not os.path.isfile(os.path.join(dist_dir, "index.html")):
+        raise SystemExit(
+            "Brak gui/dist — zbuduj UI: cd gui && npm install && npm run build"
+        )
+    return dist_dir
+
+
 class TrafficCompilerHandler(SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
-        # Serwujemy pliki z katalogu gui/
-        gui_dir = os.path.join(BASE_DIR, "gui")
-        super().__init__(*args, directory=gui_dir, **kwargs)
+        super().__init__(*args, directory=resolve_gui_dir(), **kwargs)
 
     def end_headers(self):
         # Zapobiegamy cache'owaniu w przeglądarce podczas testów
@@ -122,13 +130,16 @@ def find_free_port(preferred_ports=[8000, 8080, 8888, 5000]):
 def main():
     port = find_free_port()
     server_address = ("127.0.0.1", port)
-    httpd = HTTPServer(server_address, TrafficCompilerHandler)
+    httpd = ThreadingHTTPServer(server_address, TrafficCompilerHandler)
 
     url = f"http://localhost:{port}"
+    static_root = resolve_gui_dir()
     print("=" * 70)
-    print("🚦 TrafficLightCompiler — Interaktywne GUI i Symulator Skrzyżowania")
-    print(f"[*] Serwer uruchomiony pod adresem: {url}")
-    print("[*] Wciśnij Ctrl+C, aby zatrzymać serwer.")
+    print("TrafficLightCompiler — GUI i symulator (Vite + Konva)")
+    print(f"[*] Serwer: {url}")
+    print(f"[*] Statyczne: {static_root}")
+    print("[*] Dev UI: cd gui && npm run dev (API nadal przez ten serwer)")
+    print("[*] Ctrl+C — stop")
     print("=" * 70)
 
     # Otwórz przeglądarkę automatycznie, jeśli nie przekazano flagi --no-browser

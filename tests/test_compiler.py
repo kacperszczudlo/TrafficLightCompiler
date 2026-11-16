@@ -264,24 +264,16 @@ class TestDfaAndCodeGeneration(unittest.TestCase):
         controller.run(dry_run=True)
 
 class TestAllExampleFiles(unittest.TestCase):
-    """Automatyczny test regresyjny dla wszystkich 9 plików w katalogu examples/."""
+    """Regresja dla jedynego przykładu demo — Rondo Autorskie."""
 
     def test_all_examples_in_directory(self):
         examples_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "examples"))
         expected_results = {
-            "skrzyzowanie_proste.traffic": (True, None),
-            "skrzyzowanie_zintegrowane.traffic": (True, None),
-            "rondo_mogilskie_krakow.traffic": (True, None),
-            "wezel_diament_autostrada.traffic": (True, None),
-            "skrzyzowanie_nocne_awaryjne.traffic": (True, None),
-            "skrzyzowanie_kolizja.traffic": (False, "CollisionConflictException"),
-            "kolizja_tramwaj_samochod.traffic": (False, "CollisionConflictException"),
-            "brak_fazy_zoltej.traffic": (False, "InvalidPhaseTransitionError"),
-            "za_krotka_faza_zolta.traffic": (False, "InvalidTimeDurationError"),
+            "rondo_autorskie.traffic": (True, None),
         }
 
         files = [f for f in os.listdir(examples_dir) if f.endswith(".traffic")]
-        self.assertGreaterEqual(len(files), 9, "Brak wszystkich 9 oczekiwanych plików w examples/")
+        self.assertEqual(sorted(files), sorted(expected_results.keys()))
 
         for filename in files:
             with self.subTest(filename=filename):
@@ -290,7 +282,6 @@ class TestAllExampleFiles(unittest.TestCase):
                     code = fp.read()
 
                 res = compile_source_string(code)
-                self.assertIn(filename, expected_results, f"Nieoczekiwany plik w examples: {filename}")
                 exp_valid, exp_err = expected_results[filename]
 
                 self.assertEqual(
@@ -304,7 +295,6 @@ class TestAllExampleFiles(unittest.TestCase):
                         f"Plik {filename} zwrócił błąd {res['error_type']}, oczekiwano {exp_err}."
                     )
                 else:
-                    # Sprawdzenie czy wygenerowany sterownik kompiluje się i działa w trybie dry-run
                     target_code = res["target_code"]
                     compiled = compile(target_code, f"<test_{filename}>", "exec")
                     ns = {}

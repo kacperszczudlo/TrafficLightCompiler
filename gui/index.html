@@ -3,12 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TrafficLightCompiler — IDE & Symulator Skrzyżowania</title>
+  <title>TrafficLightCompiler: IDE i Symulator Skrzyżowania</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚦</text></svg>">
-  <link rel="stylesheet" href="styles.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
   <div class="app-container">
@@ -22,16 +21,13 @@
         </div>
         <div>
           <h1>TrafficLight<span>Compiler</span></h1>
-          <p class="subtitle">Kompilator DSL i Deterministyczny Symulator Automatu Moore'a</p>
+          <p class="subtitle">DSL · automat Moore’a · symulator 2D</p>
         </div>
       </div>
 
       <div class="header-actions">
-        <div class="example-selector-group">
-          <label for="exampleSelect">Szablon:</label>
-          <select id="exampleSelect">
-            <option value="">Wybierz przykład...</option>
-          </select>
+        <div class="example-selector-group" hidden aria-hidden="true" style="display:none">
+          <select id="exampleSelect"></select>
         </div>
 
         <button id="compileBtn" class="btn btn-primary" title="Weryfikuje semantykę i generuje kod automatu (F5 lub Ctrl+Enter)">
@@ -131,6 +127,10 @@
                   <option value="4.0">4.0x</option>
                 </select>
               </div>
+              <label class="debug-toggle" title="AABB, stopAt, trasy">
+                <input type="checkbox" id="debugToggle" />
+                Debug geometrii
+              </label>
             </div>
           </div>
 
@@ -138,15 +138,15 @@
           <div class="state-dashboard">
             <div class="state-metric">
               <span class="metric-label">Stan Automatu</span>
-              <span id="stateIdDisplay" class="metric-value">—</span>
+              <span id="stateIdDisplay" class="metric-value">-</span>
             </div>
             <div class="state-metric">
               <span class="metric-label">Krok Cyklu</span>
-              <span id="stepProgressDisplay" class="metric-value">— / —</span>
+              <span id="stepProgressDisplay" class="metric-value">- / -</span>
             </div>
             <div class="state-metric time-metric">
               <span class="metric-label">Pozostały Czas</span>
-              <span id="stateTimeDisplay" class="metric-value">— s</span>
+              <span id="stateTimeDisplay" class="metric-value">- s</span>
             </div>
             <div class="state-metric">
               <span class="metric-label">Ukończonych Cykli</span>
@@ -159,29 +159,24 @@
             <div id="stateProgressBar" class="progress-bar-fill"></div>
           </div>
 
-          <!-- Alert o kolizji (widoczny przy błędzie) -->
-          <div id="collisionAlertBanner" class="collision-banner hidden">
-            <div class="alert-icon">⚠️</div>
-            <div class="alert-content">
-              <h3>BŁĄD BEZPIECZEŃSTWA: Wykryto Kolizję!</h3>
-              <p id="collisionAlertText">Wystąpił konflikt kolizyjny.</p>
-            </div>
-          </div>
-
-          <!-- Canvas 2D -->
+          <!-- Konva stage (Vite + TypeScript) -->
           <div class="canvas-wrapper">
-            <canvas id="trafficCanvas" width="800" height="600"></canvas>
+            <div id="collisionAlertBanner" class="collision-banner hidden">
+              <div class="alert-content">
+                <h3>Błąd bezpieczeństwa</h3>
+                <p id="collisionAlertText">Wykryto konflikt fazowy.</p>
+              </div>
+            </div>
+            <div id="stageHost" aria-label="Symulator skrzyżowania"></div>
           </div>
 
-          <!-- Wskaźniki sygnałów w czasie rzeczywistym -->
-          <div class="signals-status-grid" id="signalsGrid">
-            <!-- Dynamicznie generowane chipy kierunków -->
-          </div>
+          <!-- Stała wysokość — nie kurczy canvas po Kompiluj -->
+          <div class="signals-status-grid" id="signalsGrid"></div>
         </div>
       </section>
     </main>
   </div>
 
-  <script src="app.js"></script>
+  <script type="module" src="/src/main.ts"></script>
 </body>
 </html>

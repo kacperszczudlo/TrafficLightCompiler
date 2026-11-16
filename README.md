@@ -200,15 +200,19 @@ Przetwarzanie kodu odbywa się w 5 deterministycznych fazach:
 
 ## 5a. Interaktywne GUI i Symulator 2D
 
-Dla pełnej prezentacji działania kompilatora przygotowano lokalną aplikację webową (standardowy `http.server` w Pythonie — **0 dodatkowych instalacji pip**):
+UI to Vite + TypeScript + Konva (`gui/src`). Serwer Pythona (`run_gui.py`) serwuje wyłącznie zbudowany `gui/dist` i API kompilatora:
+
 ```powershell
+cd gui
+npm install
+npm run build
+cd ..
 python run_gui.py
 ```
-Aplikacja otwiera się w przeglądarce (`http://localhost:8000`) i oferuje:
-* Edytor kodu z wgranymi szablonami,
-* Podgląd logów każdego z 5 etapów kompilacji,
-* Wizualny symulator 2D na Canvasie ze zmieniającymi się światłami, ruchem aut, pieszymi, tramwajem i rogatkami kolejowymi,
-* Czerwony alarm w czasie rzeczywistym przy próbie skompilowania kolizji.
+
+Dev frontendu: `cd gui && npm run dev` (API nadal przez `python run_gui.py`).
+
+Aplikacja (`http://localhost:8000`) ma edytor z szablonami, logi 5 etapów kompilacji, symulator 2D (Konva) oraz alarm przy kolizji w cyklu.
 
 ---
 
