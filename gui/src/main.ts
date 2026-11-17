@@ -281,10 +281,18 @@ function renderLogs(
     compilerLogsContainer.appendChild(div);
   });
 
-  if (!valid && errMsg) {
+  if (valid) {
+    const div = document.createElement("div");
+    div.className = "console-line success";
+    div.style.fontWeight = "bold";
+    div.textContent =
+      "[+] VALID: YES — Program spełnia wszystkie kryteria bezpieczeństwa.";
+    compilerLogsContainer.appendChild(div);
+  } else {
     const div = document.createElement("div");
     div.className = "console-line error";
-    div.textContent = `[!] ${errType || "Błąd"}: ${errMsg}`;
+    div.style.fontWeight = "bold";
+    div.textContent = `[-] VALID: NO — ${errType || "Błąd"}: ${errMsg || "Program odrzucony przez walidator"}`;
     compilerLogsContainer.appendChild(div);
   }
 
@@ -304,7 +312,7 @@ async function doCompile() {
       result.error_message,
     );
     if (result.valid && result.dfa) {
-      setBadge("valid", "Zweryfikowany (OK)");
+      setBadge("valid", "VALID: YES");
       collisionAlertBanner.classList.add("hidden");
       generatedTargetCode = result.target_code || "";
       currentDfa = result.dfa;
@@ -325,7 +333,7 @@ async function doCompile() {
       playPauseIcon.innerHTML =
         '<rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect>';
     } else {
-      setBadge("error", "Odrzucony (błąd)");
+      setBadge("error", "VALID: NO");
       collisionAlertBanner.classList.remove("hidden");
       collisionAlertText.textContent = `${result.error_type || "Błąd"}: ${result.error_message || "Program odrzucony przez walidator"}`;
       if (result.dfa) {

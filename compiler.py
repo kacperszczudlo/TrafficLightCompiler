@@ -49,6 +49,7 @@ def compile_source_string(source_code: str) -> dict:
     if all_syntax_errors:
         for err in all_syntax_errors:
             log(f"[!] {err}")
+        log(f"[-] VALID: NO — Błąd składniowy (SyntaxError: {len(all_syntax_errors)} błędów).")
         return {
             "valid": False,
             "error_type": "SyntaxError",
@@ -78,6 +79,7 @@ def compile_source_string(source_code: str) -> dict:
         sem_error_msg = str(e)
         err_msg = f"{sem_error_type}: {sem_error_msg}"
         log(f"[!] BŁĄD SEMANTYCZNY: {err_msg}")
+        log(f"[-] VALID: NO — Wykryto naruszenie reguł bezpieczeństwa ({sem_error_type}).")
         log("      [!] Kompilator zablokował wygenerowanie kodu produkcyjnego.")
         log("      [*] Wygenerowano model DFA automatu, aby umożliwić symulację zderzenia/usterki w GUI.")
 
@@ -89,6 +91,7 @@ def compile_source_string(source_code: str) -> dict:
         target_code = PythonCodeGenerator.generate_from_dfa(dfa_dict)
         log(f"      Wygenerowano automat DFA z {len(dfa_dict.get('states', []))} stanami.")
         log("      Wygenerowano autonomiczny sterownik Python.")
+        log("[+] VALID: YES — Program spełnia wszystkie kryteria bezpieczeństwa.")
 
     return {
         "valid": is_valid,
@@ -114,9 +117,11 @@ def compile_traffic(source_path: str, output_target_path: str = None, dfa_json_p
         print(line)
 
     if not result["valid"]:
-        print(f"\n[!] KOMPILACJA ZAKOŃCZONA BŁĘDEM: {result['error_type']}")
+        print(f"\n[-] VALID: NO — KOMPILACJA ZAKOŃCZONA BŁĘDEM: {result['error_type']}")
         print(f"    {result['error_message']}")
         return False, None
+
+    print(f"\n[+] VALID: YES — Program poprawny i bezkolizyjny.")
 
     # Zapis kodu sterownika
     if output_target_path:
