@@ -143,6 +143,9 @@ export class SimRuntime {
     }
     this.spawnActors();
     this.syncSignals();
+    if (!this.debug) {
+      this.stageApp.clearDebug();
+    }
   }
 
   setRunning(v: boolean) {
@@ -159,6 +162,10 @@ export class SimRuntime {
 
   setSpeed(v: number) {
     this.speed = v;
+  }
+
+  isDebug(): boolean {
+    return this.debug;
   }
 
   setDebug(v: boolean) {

@@ -44,6 +44,9 @@ const stepBtn = document.getElementById("stepBtn") as HTMLButtonElement;
 const restartBtn = document.getElementById(
   "restartBtn",
 ) as HTMLButtonElement | null;
+const toggleDebugBtn = document.getElementById(
+  "toggleDebugBtn",
+) as HTMLButtonElement | null;
 const simSpeedSelect = document.getElementById("simSpeed") as HTMLSelectElement;
 const activeIntersectionName = document.getElementById(
   "activeIntersectionName",
@@ -137,9 +140,21 @@ const stageHost = document.getElementById("stageHost") as HTMLDivElement;
 const stageApp = new StageApp(stageHost, AUTORSKIE);
 const sim = new SimRuntime(stageApp);
 
+function updateDebugBtnState(active: boolean) {
+  if (!toggleDebugBtn) return;
+  if (active) {
+    toggleDebugBtn.classList.add("active");
+    toggleDebugBtn.title = "Geometria: WŁĄCZONA (kliknij, aby ukryć)";
+  } else {
+    toggleDebugBtn.classList.remove("active");
+    toggleDebugBtn.title = "Geometria: WYŁĄCZONA (kliknij, aby wyświetlić)";
+  }
+}
+
 sim.setOnPausedByCollision(() => {
   playPauseText.textContent = "Wznów";
   playPauseIcon.innerHTML = '<polygon points="5 3 19 12 5 21 5 3"></polygon>';
+  updateDebugBtnState(true);
 });
 
 let examples: Record<string, string> = {};
@@ -325,6 +340,7 @@ async function doCompile() {
       playPauseBtn.disabled = false;
       stepBtn.disabled = false;
       if (restartBtn) restartBtn.disabled = false;
+      if (toggleDebugBtn) toggleDebugBtn.disabled = false;
 
       activeIntersectionName.textContent = result.dfa.name;
       sim.setDfa(result.dfa);
@@ -332,6 +348,10 @@ async function doCompile() {
       playPauseText.textContent = "Zatrzymaj";
       playPauseIcon.innerHTML =
         '<rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect>';
+
+      // Po kompilacji poprawnego kodu wyłącz geometrię powypadkową
+      sim.setDebug(false);
+      updateDebugBtnState(false);
     } else {
       setBadge("error", "VALID: NO");
       collisionAlertBanner.classList.remove("hidden");
@@ -342,14 +362,21 @@ async function doCompile() {
         playPauseBtn.disabled = false;
         stepBtn.disabled = false;
         if (restartBtn) restartBtn.disabled = false;
+        if (toggleDebugBtn) toggleDebugBtn.disabled = false;
         activeIntersectionName.textContent = `[ZAGROŻENIE] ${result.dfa.name}`;
         sim.setRunning(true);
+        // Przy błędzie/kolizji włącz geometrię do inspekcji
+        sim.setDebug(true);
+        updateDebugBtnState(true);
       } else {
         playPauseBtn.disabled = true;
         stepBtn.disabled = true;
         if (restartBtn) restartBtn.disabled = true;
+        if (toggleDebugBtn) toggleDebugBtn.disabled = true;
         sim.setRunning(false);
         sim.setDfa(null);
+        sim.setDebug(false);
+        updateDebugBtnState(false);
       }
       downloadCodeBtn.disabled = true;
       if (copyCodeBtn) copyCodeBtn.disabled = true;
@@ -401,6 +428,14 @@ if (restartBtn) {
       playPauseIcon.innerHTML =
         '<rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect>';
     }
+  });
+}
+
+if (toggleDebugBtn) {
+  toggleDebugBtn.addEventListener("click", () => {
+    const nextState = !sim.isDebug();
+    sim.setDebug(nextState);
+    updateDebugBtnState(nextState);
   });
 }
 
