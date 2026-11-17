@@ -1,0 +1,19 @@
+// ZDANIE POPRAWNE
+// Ulica z przejściem dla pieszych. Parser je akceptuje,
+// a walidator semantyczny potwierdza, że cykl jest bezpieczny.
+skrzyzowanie "Przejscie_Szkolne" {
+    kierunki {
+        Ulica: pojazdy;
+        Przejscie: piesi;
+    }
+    kolizje {
+        Ulica <-> Przejscie;
+    }
+    cykl {
+        krok(czas: 20s) { Ulica: ZIELONE;        Przejscie: CZERWONE;         }
+        krok(czas: 3s)  { Ulica: ZOLTE;          Przejscie: CZERWONE;         }
+        krok(czas: 12s) { Ulica: CZERWONE;       Przejscie: ZIELONE;          }
+        krok(czas: 3s)  { Ulica: CZERWONE;       Przejscie: ZIELONE_MIGAJACE; }
+        krok(czas: 2s)  { Ulica: CZERWONE_ZOLTE; Przejscie: CZERWONE;         }
+    }
+}

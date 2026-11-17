@@ -1,0 +1,16 @@
+// ZDANIE POPRAWNE SKŁADNIOWO, ALE NIEBEZPIECZNE.
+// Parser sprawdza tylko formę. Nie wie, że zielone dla ulicy
+// i pieszych naraz to wypadek. To wyłapuje walidator semantyczny.
+skrzyzowanie "Przejscie" {
+    kierunki {
+        Ulica: pojazdy;
+        Przejscie: piesi;
+    }
+    kolizje {
+        Ulica <-> Przejscie;
+    }
+    cykl {
+        krok(czas: 20s) { Ulica: ZIELONE;  Przejscie: ZIELONE;  }
+        krok(czas: 20s) { Ulica: ZOLTE;    Przejscie: CZERWONE; }
+    }
+}

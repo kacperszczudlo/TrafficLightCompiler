@@ -1,0 +1,7 @@
+// ZDANIE POPRAWNE SKŁADNIOWO - najkrótsze zdanie języka.
+// Gramatyka pozwala na puste sekcje (directionDef*, stepDef*),
+// więc parser je akceptuje. Odrzuca je dopiero analiza semantyczna.
+skrzyzowanie "Puste" {
+    kierunki { }
+    cykl { }
+}

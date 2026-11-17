@@ -1,0 +1,12 @@
+// ZDANIE NIEPOPRAWNE: literówka "ZIELNE" zamiast "ZIELONE".
+// Lekser robi z niej zwykły ID, a parser w tym miejscu oczekuje stanu światła.
+skrzyzowanie "Przejscie" {
+    kierunki {
+        Ulica: pojazdy;
+        Przejscie: piesi;
+    }
+    cykl {
+        krok(czas: 20s) { Ulica: ZIELNE;   Przejscie: CZERWONE; }
+        krok(czas: 15s) { Ulica: CZERWONE; Przejscie: ZIELONE;  }
+    }
+}

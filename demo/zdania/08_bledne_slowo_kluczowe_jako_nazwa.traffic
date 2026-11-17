@@ -1,0 +1,12 @@
+// ZDANIE NIEPOPRAWNE: kierunek nazwany "krok".
+// "krok" to słowo kluczowe, więc lekser nie zrobi z niego ID.
+skrzyzowanie "Przejscie" {
+    kierunki {
+        krok: pojazdy;
+        Przejscie: piesi;
+    }
+    cykl {
+        krok(czas: 20s) { Przejscie: CZERWONE; }
+        krok(czas: 15s) { Przejscie: ZIELONE;  }
+    }
+}

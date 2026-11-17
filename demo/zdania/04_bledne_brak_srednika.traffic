@@ -1,0 +1,12 @@
+// ZDANIE NIEPOPRAWNE: brak średnika po "Ulica: pojazdy".
+// Parser wstawia brakujący token (<missing ';'>) i parsuje dalej.
+skrzyzowanie "Przejscie" {
+    kierunki {
+        Ulica: pojazdy
+        Przejscie: piesi;
+    }
+    cykl {
+        krok(czas: 20s) { Ulica: ZIELONE;  Przejscie: CZERWONE; }
+        krok(czas: 15s) { Ulica: CZERWONE; Przejscie: ZIELONE;  }
+    }
+}

@@ -1,0 +1,12 @@
+// ZDANIE NIEPOPRAWNE: "czas: 20" bez jednostki (ms, s, m).
+// Tu błąd zgłasza już lekser: "20" nie pasuje do żadnego tokenu.
+skrzyzowanie "Przejscie" {
+    kierunki {
+        Ulica: pojazdy;
+        Przejscie: piesi;
+    }
+    cykl {
+        krok(czas: 20) { Ulica: ZIELONE;  Przejscie: CZERWONE; }
+        krok(czas: 15s) { Ulica: CZERWONE; Przejscie: ZIELONE;  }
+    }
+}
